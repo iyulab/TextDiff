@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TextDiff\TextDiff.csproj" />
+    <ProjectReference Include="..\TextDiff.Sharp\TextDiff.Sharp.csproj" />
   </ItemGroup>
 
   <ItemGroup>
