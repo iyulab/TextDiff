@@ -1,5 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
+<Project>
   <PropertyGroup>
     <LangVersion>preview</LangVersion>
     <ImplicitUsings>disable</ImplicitUsings>
