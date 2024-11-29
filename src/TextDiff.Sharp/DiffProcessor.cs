@@ -19,7 +19,7 @@ public class DiffProcessor
         var resultLines = ApplyChanges(documentLines, changes);
 
         // 결과 라인 리스트의 끝에 있는 빈 문자열 제거
-        while (resultLines.Count > 0 && string.IsNullOrEmpty(resultLines[^1]))
+        while (resultLines.Count > 0 && string.IsNullOrEmpty(resultLines[resultLines.Count - 1]))
         {
             resultLines.RemoveAt(resultLines.Count - 1);
         }

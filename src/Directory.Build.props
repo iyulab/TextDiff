@@ -3,7 +3,7 @@
     <LangVersion>preview</LangVersion>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <Authors>iyulab</Authors>
     <Company>Iyulab Corporation</Company>
     <PackageTags>diff;text-diff;unified-diff;text-processing;file-diff;version-control;text-comparison;line-diff;csharp;dotnet;unicode;string-processing;code-diff;text-manipulation</PackageTags>
