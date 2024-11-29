@@ -1,4 +1,4 @@
-# TextDiff
+# TextDiff (PackageID: TextDiff.Sharp)
 
 **TextDiff** is a robust and efficient C# library designed for parsing, analyzing, and applying text differences. It supports the Unified Diff format, making it an essential tool for developers and applications that require precise text comparison and modification capabilities.
 
@@ -27,13 +27,13 @@
 You can install **TextDiff** via NuGet. Run the following command in the Package Manager Console:
 
 ```bash
-Install-Package TextDiff
+Install-Package TextDiff.Sharp
 ```
 
 Alternatively, you can add it to your project using the .NET CLI:
 
 ```bash
-dotnet add package TextDiff
+dotnet add package TextDiff.Sharp
 ```
 
 ## Usage
@@ -173,9 +173,9 @@ Line Three
 
 **Original Text (`original.txt`):**
 ```
-¾È³çÇÏ¼¼¿ä
-ÀÌ°ÍÀº »ùÇÃ ¹®¼­ÀÔ´Ï´Ù.
-¾È³çÈ÷ °¡¼¼¿ä
+ì•ˆë…•í•˜ì„¸ìš”
+ì´ê²ƒì€ ìƒ˜í”Œ ë¬¸ì„œì…ë‹ˆë‹¤.
+ì•ˆë…•íˆ ê°€ì„¸ìš”
 ```
 
 **Unified Diff (`diff.unified`):**
@@ -183,17 +183,17 @@ Line Three
 --- original.txt
 +++ modified.txt
 @@ -1,3 +1,3 @@
- ¾È³çÇÏ¼¼¿ä
--ÀÌ°ÍÀº »ùÇÃ ¹®¼­ÀÔ´Ï´Ù.
-+ÀÌ°ÍÀº ¾÷µ¥ÀÌÆ®µÈ ¹®¼­ÀÔ´Ï´Ù.
- ¾È³çÈ÷ °¡¼¼¿ä
+ ì•ˆë…•í•˜ì„¸ìš”
+-ì´ê²ƒì€ ìƒ˜í”Œ ë¬¸ì„œì…ë‹ˆë‹¤.
++ì´ê²ƒì€ ì—…ë°ì´íŠ¸ëœ ë¬¸ì„œì…ë‹ˆë‹¤.
+ ì•ˆë…•íˆ ê°€ì„¸ìš”
 ```
 
 **Resulting Modified Text (`modified.txt`):**
 ```
-¾È³çÇÏ¼¼¿ä
-ÀÌ°ÍÀº ¾÷µ¥ÀÌÆ®µÈ ¹®¼­ÀÔ´Ï´Ù.
-¾È³çÈ÷ °¡¼¼¿ä
+ì•ˆë…•í•˜ì„¸ìš”
+ì´ê²ƒì€ ì—…ë°ì´íŠ¸ëœ ë¬¸ì„œì…ë‹ˆë‹¤.
+ì•ˆë…•íˆ ê°€ì„¸ìš”
 ```
 
 ## Contributing
