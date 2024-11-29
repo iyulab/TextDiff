@@ -15,6 +15,19 @@ public class DiffProcessor
     {
         var documentLines = TextHelper.SplitLines(documentText);
         var blocks = _parser.Parse(diffText);
+
+        // 빈 문서에 대한 순수 추가 작업인 경우 특별 처리
+        if (documentLines.Count == 0 && blocks.Count == 1 &&
+            blocks[0].InsertLines.Any() && !blocks[0].TargetLines.Any())
+        {
+            var addedLines = blocks[0].InsertLines.ToList();
+            return new ProcessResult
+            {
+                Text = string.Join(Environment.NewLine, addedLines),
+                Changes = new DocumentChangeResult { AddedLines = addedLines.Count }
+            };
+        }
+
         var changes = CalculateChanges(documentLines, blocks, out var changeResult);
         var resultLines = ApplyChanges(documentLines, changes);
 
@@ -75,20 +88,27 @@ public class DiffProcessor
 
     private DocumentChange CreateDocumentChange(List<string> documentLines, DiffBlock block, int position)
     {
-        // 변경이 일어나는 위치의 들여쓰기를 파악
-        string indentation = "";
-        if (position > 0 && position < documentLines.Count)
-        {
-            // 현재 위치의 라인이나 이전 라인에서 들여쓰기를 가져옴
-            var currentLine = documentLines[position];
-            var prevLine = documentLines[position - 1];
+        string commonIndentation;
 
-            // 현재 라인과 이전 라인 중에서 들여쓰기가 있는 쪽을 선택
-            indentation = WhitespaceHelper.ExtractLeadingWhitespace(currentLine);
-            if (string.IsNullOrEmpty(indentation))
-            {
-                indentation = WhitespaceHelper.ExtractLeadingWhitespace(prevLine);
-            }
+        // 변경되는 라인이 있는 경우
+        if (block.TargetLines.Any())
+        {
+            var targetPositions = Enumerable.Range(position, block.TargetLines.Count);
+            var targetLines = targetPositions
+                .Where(i => i < documentLines.Count)
+                .Select(i => documentLines[i])
+                .ToList();
+
+            commonIndentation = WhitespaceHelper.FindCommonIndentation(targetLines);
+        }
+        // 순수 추가인 경우
+        else
+        {
+            var nextLine = position < documentLines.Count
+                ? documentLines[position]
+                : position > 0 ? documentLines[position - 1] : "";
+
+            commonIndentation = WhitespaceHelper.ExtractLeadingWhitespace(nextLine);
         }
 
         return new DocumentChange
@@ -96,7 +116,7 @@ public class DiffProcessor
             LineNumber = position,
             LinesToRemove = block.TargetLines,
             LinesToInsert = block.InsertLines
-                .Select(line => indentation + line.TrimStart())
+                .Select(line => commonIndentation + line.TrimStart())
                 .ToList()
         };
     }

@@ -18,7 +18,8 @@ public class DiffLine
 
         Type = line[0];
         RawContent = line;
-        Content = line.Length > 1 ? line.Substring(1) : "";
+        // 첫 문자(제어 문자) 이후의 내용을 가져올 때 추가 공백도 제거
+        Content = line.Length > 1 ? line.Substring(1).TrimStart() : "";
     }
 
     public bool IsContext => Type == ' ';

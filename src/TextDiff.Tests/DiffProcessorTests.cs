@@ -151,12 +151,12 @@ line4";
 }";
 
         var diff = @" public void FunctionA()
-{
+ {
 -     Console.WriteLine(""Original Line 1"");
 -     Console.WriteLine(""Original Line 2"");
 +     Console.WriteLine(""Updated Line 1"");
 +     Console.WriteLine(""Updated Line 2"");
-}";
+ }";
 
         var expectedResult = @"public void FunctionA()
 {
@@ -505,5 +505,363 @@ line5_modified";
         Assert.Equal(added, result.Changes.AddedLines);
         Assert.Equal(deleted, result.Changes.DeletedLines);
     }
+
+    [Fact]
+    public void TestDashInOriginalContent()
+    {
+        // Arrange
+        var document = @"function-name
+    my-variable
+    some-text
+    end-line";
+
+        var diff = @" function-name
+- my-variable
++ new-variable
+ some-text
+- end-line
++ final-line";
+
+        var expectedResult = @"function-name
+    new-variable
+    some-text
+    final-line";
+
+        // Act
+        var result = _processor.Process(document, diff);
+
+        // Log
+        AssertWithOutput(document, diff, expectedResult, result, 2, 0, 0);
+
+        // Assert
+        Assert.Equal(expectedResult, result.Text);
+    }
+
+    [Fact]
+    public void TestDashAsFirstCharacter()
+    {
+        // Arrange
+        var document = @"-start-line
+    -middle-line
+    -end-line";
+
+        var diff = @" -start-line
+- -middle-line
++ -new-middle-line
+ -end-line";
+
+        var expectedResult = @"-start-line
+    -new-middle-line
+    -end-line";
+
+        // Act
+        var result = _processor.Process(document, diff);
+
+        // Log
+        AssertWithOutput(document, diff, expectedResult, result, 1, 0, 0);
+
+        // Assert
+        Assert.Equal(expectedResult, result.Text);
+    }
+
+    #region WhitespaceTests
+
+    [Fact]
+    public void TestEmptyLinesInContent()
+    {
+        // Arrange
+        var document = @"line1
+
+line3
+
+line5";
+
+        var diff = @" line1
+ 
+- line3
++ new_line3
+ 
+- line5
++ new_line5";
+
+        var expectedResult = @"line1
+
+new_line3
+
+new_line5";
+
+        // Act
+        var result = _processor.Process(document, diff);
+
+        // Log
+        AssertWithOutput(document, diff, expectedResult, result, 2, 0, 0);
+
+        // Assert
+        Assert.Equal(expectedResult, result.Text);
+    }
+
+    [Fact]
+    public void TestMixedIndentation()
+    {
+        // Arrange
+        var document = $"line1{Environment.NewLine}\tindented_tab{Environment.NewLine}    indented_space{Environment.NewLine}\t    mixed_indent";
+
+        var diff = @" line1
+- 	indented_tab
++ 	new_indented_tab
+     indented_space
+- 	    mixed_indent
++ 	    new_mixed_indent";
+
+        var expectedResult = $"line1{Environment.NewLine}\tnew_indented_tab{Environment.NewLine}    indented_space{Environment.NewLine}\t    new_mixed_indent";
+
+        // Act
+        var result = _processor.Process(document, diff);
+
+        // Log
+        AssertWithOutput(document, diff, expectedResult, result, 2, 0, 0);
+
+        // Assert
+        Assert.Equal(expectedResult, result.Text);
+
+        // 추가 검증: 들여쓰기가 정확히 유지되는지 확인
+        var resultLines = TextHelper.SplitLines(result.Text);
+        Assert.Equal("\tnew_indented_tab", resultLines[1]); // 탭 들여쓰기
+        Assert.Equal("    indented_space", resultLines[2]); // 스페이스 들여쓰기
+        Assert.Equal("\t    new_mixed_indent", resultLines[3]); // 혼합 들여쓰기
+    }
+
+    #endregion
+
+    #region SpecialCharacterTests
+
+    [Fact]
+    public void TestPlusSignInOriginalContent()
+    {
+        // Arrange
+        var document = @"C++ Code
+    a+b+c
+    x+y+z
+    end";
+
+        var diff = @" C++ Code
+- a+b+c
++ a+b+c+d
+ x+y+z
+- end
++ end_plus+";
+
+        var expectedResult = @"C++ Code
+    a+b+c+d
+    x+y+z
+    end_plus+";
+
+        // Act
+        var result = _processor.Process(document, diff);
+
+        // Log
+        AssertWithOutput(document, diff, expectedResult, result, 2, 0, 0);
+
+        // Assert
+        Assert.Equal(expectedResult, result.Text);
+    }
+
+    [Fact]
+    public void TestUnicodeCharacters()
+    {
+        // Arrange
+        var document = @"안녕하세요
+    こんにちは
+    你好";
+
+        var diff = @" 안녕하세요
+- こんにちは
++ さようなら
+ 你好";
+
+        var expectedResult = @"안녕하세요
+    さようなら
+    你好";
+
+        // Act
+        var result = _processor.Process(document, diff);
+
+        // Log
+        AssertWithOutput(document, diff, expectedResult, result, 1, 0, 0);
+
+        // Assert
+        Assert.Equal(expectedResult, result.Text);
+    }
+
+    #endregion
+
+    #region ErrorCases
+
+    [Fact]
+    public void TestInvalidDiffFormat_EmptyLines()
+    {
+        // Arrange
+        var document = "line1\nline2\nline3";
+        var diff = "line1\n\n+new_line\n";  // 빈 줄이 있고 첫 줄이 컨텍스트 표시(' ')로 시작하지 않음
+
+        // Act & Assert
+        var ex = Assert.Throws<FormatException>(() =>
+            _processor.Process(document, diff));
+        Assert.Contains("Invalid diff format: Line must start with space, '+'", ex.Message);
+    }
+
+    [Theory]
+    [InlineData(
+        @">line1
+ line2
++new_line2",
+        "Line must start with space, '+'")]
+    [InlineData(
+        @"line1
+line2
++line3",
+        "Line must start with space, '+'")]  // 첫 줄에 컨텍스트 표시 누락
+    [InlineData(
+        @" line1
+- - line2
++ new_line2",
+        "Duplicate control characters")]
+    [InlineData(
+        @" line1
+@ line2
++ new_line2",
+        "Line must start with space, '+'")]
+    public void TestInvalidDiffFormats(string diff, string expectedErrorMessage)
+    {
+        // Arrange
+        var document = @"line1
+line2
+line3";
+
+        // Act & Assert
+        var ex = Assert.Throws<FormatException>(() =>
+            _processor.Process(document, diff));
+        Assert.Contains(expectedErrorMessage, ex.Message);
+    }
+
+    [Fact]
+    public void TestMismatchedContextLines()
+    {
+        // Arrange
+        var document = @"line1
+line2
+line3";
+
+        var diff = @" different_line1
+- line2
++ new_line2
+ line3";
+
+        // Act & Assert
+        Assert.Throws<InvalidOperationException>(() => _processor.Process(document, diff));
+    }
+
+    #endregion
+
+    #region EdgeCases
+
+    [Fact]
+    public void TestVeryLongDocument()
+    {
+        // Arrange
+        var documentLines = Enumerable.Range(1, 10000).Select(i => $"line{i}").ToList();
+        var document = string.Join(Environment.NewLine, documentLines);
+
+        var diff = @" line4998
+ line4999
+- line5000
++ new_line5000
+ line5001
+ line5002";
+
+        var resultLines = new List<string>(documentLines);
+        resultLines[4999] = "new_line5000";  // 0-based index for line5000
+        var expectedResult = string.Join(Environment.NewLine, resultLines);
+
+        // Act
+        var result = _processor.Process(document, diff);
+
+        // Log
+        _output.WriteLine($"Document length: {documentLines.Count} lines");
+        _output.WriteLine($"Changed line 5000 from 'line5000' to 'new_line5000'");
+        if (result.Text != expectedResult)
+        {
+            // 문제를 디버깅하기 위한 추가 로깅
+            var actualLines = result.Text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+            _output.WriteLine($"Actual change position: Looking for change near line {Array.IndexOf(actualLines, "new_line5000") + 1}");
+        }
+
+        // Assert
+        Assert.Equal(expectedResult, result.Text);
+        Assert.Equal(1, result.Changes.ChangedLines);
+    }
+
+    [Fact]
+    public void TestDuplicateLines()
+    {
+        // Arrange
+        var document = @"duplicate
+duplicate
+unique
+duplicate
+duplicate";
+
+        var diff = @" duplicate
+- duplicate
++ modified
+ unique
+ duplicate
+ duplicate";
+
+        var expectedResult = @"duplicate
+modified
+unique
+duplicate
+duplicate";
+
+        // Act
+        var result = _processor.Process(document, diff);
+
+        // Log
+        AssertWithOutput(document, diff, expectedResult, result, 1, 0, 0);
+
+        // Assert
+        Assert.Equal(expectedResult, result.Text);
+    }
+
+    [Fact]
+    public void TestChangesAtDocumentBoundaries()
+    {
+        // Arrange
+        var document = @"first_line
+middle
+last_line";
+
+        var diff = @"- first_line
++ new_first_line
+ middle
+- last_line
++ new_last_line";
+
+        var expectedResult = @"new_first_line
+middle
+new_last_line";
+
+        // Act
+        var result = _processor.Process(document, diff);
+
+        // Log
+        AssertWithOutput(document, diff, expectedResult, result, 2, 0, 0);
+
+        // Assert
+        Assert.Equal(expectedResult, result.Text);
+    }
+
+    #endregion
 }
 

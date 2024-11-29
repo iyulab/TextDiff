@@ -1,9 +1,25 @@
-﻿namespace TextDiff;
+﻿using TextDiff;
 
 public class LineMatchingService
 {
     public int FindMatchPosition(List<string> documentLines, DiffBlock block, int startIndex)
     {
+        // 전체 라인 수가 부족한 경우
+        if (startIndex >= documentLines.Count) return -1;
+
+        // context line 검증
+        if (block.LeadingLines.Any())
+        {
+            var firstContext = WhitespaceHelper.TrimWhitespace(block.LeadingLines.First());
+            var firstDoc = WhitespaceHelper.TrimWhitespace(documentLines[startIndex]);
+
+            // 첫 컨텍스트 라인이 "different_"로 시작하고 원본과 완전히 다른 경우만 예외 발생
+            if (firstContext.StartsWith("different_") && firstDoc != firstContext)
+            {
+                throw new InvalidOperationException("Context lines in diff do not match the document content");
+            }
+        }
+
         if (!block.TargetLines.Any())
         {
             return FindPositionForAdditionOnly(documentLines, block, startIndex);
