@@ -1,0 +1,14 @@
+--- a/Payment.cs
++++ b/Payment.cs
+@@ -2,5 +2,8 @@
+ {
+     public void ProcessPayment(decimal amount)
+     {
+-         Console.WriteLine($"Processing payment of {amount}");
++         if(amount <= 0)
++         {
++             throw new ArgumentException("Amount must be greater than zero.");
++         }
++         Console.WriteLine($"Processing payment of {amount}");
+     }
+ }

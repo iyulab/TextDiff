@@ -66,7 +66,7 @@ line4";
         var result = _processor.Process(document, diff);
 
         // Log
-        AssertWithOutput(document, diff, expectedResult, result, 0, 1, 0);
+        AssertWithOutput(document, diff, expectedResult, result, 0, 1, 0); // 변경 없음
 
         // Assert
         Assert.Equal(expectedResult, result.Text);
@@ -91,7 +91,7 @@ line4";
         var result = _processor.Process(document, diff);
 
         // Log
-        AssertWithOutput(document, diff, expectedResult, result, 0, 0, 1);
+        AssertWithOutput(document, diff, expectedResult, result, 0, 0, 1); // 변경 없음
 
         // Assert
         Assert.Equal(expectedResult, result.Text);
@@ -797,8 +797,7 @@ line3";
         }
 
         // Assert
-        Assert.Equal(expectedResult, result.Text);
-        Assert.Equal(1, result.Changes.ChangedLines);
+        AssertWithOutput(document, diff, expectedResult, result, 1, 0, 0);
     }
 
     [Fact]
@@ -828,7 +827,7 @@ duplicate";
         var result = _processor.Process(document, diff);
 
         // Log
-        AssertWithOutput(document, diff, expectedResult, result, 1, 0, 0);
+        AssertWithOutput(document, diff, expectedResult, result, changed: 1, added: 0, deleted: 0);
 
         // Assert
         Assert.Equal(expectedResult, result.Text);

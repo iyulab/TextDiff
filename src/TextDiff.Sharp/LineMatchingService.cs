@@ -52,7 +52,8 @@ public class LineMatchingService
             if (bestScore == 100) break;
         }
 
-        return bestScore > 50 ? bestPosition : -1;
+        // 유사도 임계값을 60으로 조정
+        return bestScore >= 60 ? bestPosition : -1;
     }
 
     private int FindExactLinePosition(List<string> documentLines, string targetLine, int startIndex)

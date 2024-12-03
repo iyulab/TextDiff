@@ -1,0 +1,16 @@
+﻿public class Order
+{
+    public int OrderId { get; set; }
+    public string Product { get; set; }
+    
+    public void SubmitOrder()
+    {
+        Console.WriteLine("Submitting order.");
+        // Additional logging
+    }
+    
+    public void CancelOrder()
+    {
+        Console.WriteLine("Order canceled.");
+    }
+}

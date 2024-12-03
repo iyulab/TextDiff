@@ -1,0 +1,10 @@
+﻿public class Order
+{
+    public int OrderId { get; set; }
+    public string Product { get; set; }
+    
+    public void PlaceOrder()
+    {
+        Console.WriteLine("Order placed.");
+    }
+}

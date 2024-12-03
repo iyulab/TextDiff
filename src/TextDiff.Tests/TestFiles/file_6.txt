@@ -1,0 +1,33 @@
+using System;
+using System.Collections.Generic;
+
+namespace PaymentProcessing
+{
+    public class Payment
+    {
+        public void ProcessPayment(decimal amount)
+        {
+            Console.WriteLine($"Processing payment of {amount}");
+        }
+
+        public bool ValidatePayment(decimal amount)
+        {
+            return amount > 0;
+        }
+
+        public void LogPayment(decimal amount)
+        {
+            Console.WriteLine($"Payment of {amount} has been logged.");
+        }
+
+        public decimal CalculateTax(decimal amount)
+        {
+            return amount * 0.15m;
+        }
+
+        public void RefundPayment(decimal amount)
+        {
+            Console.WriteLine($"Refunding payment of {amount}");
+        }
+    }
+}

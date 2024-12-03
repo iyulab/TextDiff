@@ -20,7 +20,10 @@ public class DiffProcessor
         if (documentLines.Count == 0 && blocks.Count == 1 &&
             blocks[0].InsertLines.Any() && !blocks[0].TargetLines.Any())
         {
-            var addedLines = blocks[0].InsertLines.ToList();
+            var addedLines = blocks[0].InsertLines
+                .Select(line => line.TrimStart()) // 앞쪽 공백 제거
+                .ToList();
+
             return new ProcessResult
             {
                 Text = string.Join(Environment.NewLine, addedLines),
@@ -44,41 +47,45 @@ public class DiffProcessor
         };
     }
 
-    private List<string> ApplyChanges(List<string> documentLines, List<DocumentChange> changes)
+    private DocumentChange CreateDocumentChange(List<string> documentLines, DiffBlock block, int position)
     {
-        var resultLines = new List<string>(documentLines);
-        foreach (var change in changes.OrderByDescending(c => c.LineNumber))
+        return new DocumentChange
         {
-            if (change.LineNumber >= 0 && change.LineNumber <= resultLines.Count)
-            {
-                if (change.LinesToRemove.Any())
-                {
-                    resultLines.RemoveRange(change.LineNumber,
-                        Math.Min(change.LinesToRemove.Count, resultLines.Count - change.LineNumber));
-                }
-                resultLines.InsertRange(change.LineNumber, change.LinesToInsert);
-            }
-        }
-        return resultLines;
+            LineNumber = position,
+            LinesToRemove = block.TargetLines,
+            LinesToInsert = block.InsertLines.ToList()
+        };
     }
 
     private List<DocumentChange> CalculateChanges(List<string> documentLines, List<DiffBlock> blocks,
-        out DocumentChangeResult result)
+    out DocumentChangeResult result)
     {
         var changes = new List<DocumentChange>();
         var stats = new ChangeStats();
         var lastMatchedLine = -1;
+        int lineOffset = 0; // Tracks the net change in line numbers
 
         foreach (var block in blocks)
         {
-            var matchPosition = _matchingService.FindMatchPosition(documentLines, block, lastMatchedLine + 1);
+            var adjustedStartIndex = lastMatchedLine + 1 + lineOffset;
+            var matchPosition = _matchingService.FindMatchPosition(documentLines, block, adjustedStartIndex);
             if (matchPosition >= 0)
             {
-                var change = CreateDocumentChange(documentLines, block, matchPosition);
+                var change = CreateDocumentChange(documentLines, block, matchPosition + lineOffset);
                 changes.Add(change);
 
+                // Update stats
                 stats.UpdateStats(block);
+
+                // Update lineOffset based on insertions and deletions
+                lineOffset += change.LinesToInsert.Count - change.LinesToRemove.Count;
+
                 lastMatchedLine = matchPosition;
+            }
+            else
+            {
+                // Handle cases where no match is found
+                Console.WriteLine("No match found for a diff block.");
             }
         }
 
@@ -86,38 +93,50 @@ public class DiffProcessor
         return changes;
     }
 
-    private DocumentChange CreateDocumentChange(List<string> documentLines, DiffBlock block, int position)
+    private List<string> ApplyChanges(List<string> documentLines, List<DocumentChange> changes)
     {
-        string commonIndentation;
-
-        // 변경되는 라인이 있는 경우
-        if (block.TargetLines.Any())
+        var resultLines = new List<string>(documentLines);
+        foreach (var change in changes.OrderByDescending(c => c.LineNumber))
         {
-            var targetPositions = Enumerable.Range(position, block.TargetLines.Count);
-            var targetLines = targetPositions
-                .Where(i => i < documentLines.Count)
-                .Select(i => documentLines[i])
-                .ToList();
+            Console.WriteLine($"Applying change at line {change.LineNumber}: Remove {change.LinesToRemove.Count}, Insert {change.LinesToInsert.Count}");
 
-            commonIndentation = WhitespaceHelper.FindCommonIndentation(targetLines);
+            if (change.LineNumber >= 0 && change.LineNumber <= resultLines.Count)
+            {
+                var indentation = "";
+
+                // 들여쓰기가 필요한지 확인
+                bool needsIndentation = change.LinesToInsert.Any() &&
+                    !change.LinesToInsert.Any(line => line.StartsWith("    ") || line.StartsWith("\t"));
+
+                if (needsIndentation)
+                {
+                    // 삭제될 라인의 들여쓰기를 가져옴
+                    if (change.LineNumber < resultLines.Count)
+                    {
+                        indentation = WhitespaceHelper.ExtractLeadingWhitespace(resultLines[change.LineNumber]);
+                    }
+                    // 이전 라인의 들여쓰기를 가져옴
+                    else if (change.LineNumber > 0)
+                    {
+                        indentation = WhitespaceHelper.ExtractLeadingWhitespace(resultLines[change.LineNumber - 1]);
+                    }
+                }
+
+                if (change.LinesToRemove.Any())
+                {
+                    int removeCount = Math.Min(change.LinesToRemove.Count, resultLines.Count - change.LineNumber);
+                    Console.WriteLine($"Removing {removeCount} line(s) starting at line {change.LineNumber}");
+                    resultLines.RemoveRange(change.LineNumber, removeCount);
+                }
+
+                var linesToInsert = needsIndentation
+                    ? change.LinesToInsert.Select(line => indentation + line).ToList()
+                    : change.LinesToInsert.ToList();
+
+                Console.WriteLine($"Inserting {linesToInsert.Count} line(s) at line {change.LineNumber}");
+                resultLines.InsertRange(change.LineNumber, linesToInsert);
+            }
         }
-        // 순수 추가인 경우
-        else
-        {
-            var nextLine = position < documentLines.Count
-                ? documentLines[position]
-                : position > 0 ? documentLines[position - 1] : "";
-
-            commonIndentation = WhitespaceHelper.ExtractLeadingWhitespace(nextLine);
-        }
-
-        return new DocumentChange
-        {
-            LineNumber = position,
-            LinesToRemove = block.TargetLines,
-            LinesToInsert = block.InsertLines
-                .Select(line => commonIndentation + line.TrimStart())
-                .ToList()
-        };
+        return resultLines;
     }
 }

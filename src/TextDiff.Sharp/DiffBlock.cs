@@ -15,32 +15,16 @@ public class DiffBlock
     public void AddTargetLine(DiffLine line) => _targetLines.Add(line.Content);
     public void AddLeadingLine(DiffLine line) => _leadingLines.Add(line.Content);
     public void AddTrailingLine(DiffLine line) => _trailingLines.Add(line.Content);
-    public void AddInsertLine(DiffLine line) => _insertLines.Add(line.Content);
 
-    public bool HasChanges() => _targetLines.Any() || _insertLines.Any();
-
-    public string GetCommonIndentation()
+    public void AddInsertLine(DiffLine line)
     {
-        var allLines = _leadingLines.Concat(_targetLines).Concat(_trailingLines)
-            .Where(l => !string.IsNullOrWhiteSpace(l))
-            .Select(line => {
-                int i = 0;
-                while (i < line.Length && (line[i] == ' ' || line[i] == '\t'))
-                {
-                    i++;
-                }
-                return line.Substring(0, i);
-            })
-            .Where(indent => !string.IsNullOrEmpty(indent));
+        if (string.IsNullOrWhiteSpace(line.Content))
+        {
+            _insertLines.Add(string.Empty);
+            return;
+        }
 
-        // 들여쓰기가 없으면 빈 문자열 반환
-        if (!allLines.Any()) return "";
-
-        // 가장 많이 사용된 들여쓰기를 반환
-        return allLines
-            .GroupBy(x => x)
-            .OrderByDescending(g => g.Count())
-            .First()
-            .Key;
+        // Indentation과 Content를 결합하여 삽입 라인에 실제 들여쓰기 복원
+        _insertLines.Add(line.Indentation + line.Content);
     }
 }

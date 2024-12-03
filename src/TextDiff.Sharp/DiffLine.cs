@@ -5,6 +5,7 @@ public class DiffLine
     public char Type { get; }  // ' ', '+', '-'
     public string Content { get; }
     public string RawContent { get; }
+    public string Indentation { get; }
 
     public DiffLine(string line)
     {
@@ -13,34 +14,41 @@ public class DiffLine
             Type = ' ';
             Content = "";
             RawContent = "";
+            Indentation = "";
             return;
         }
 
         Type = line[0];
         RawContent = line;
-        // 첫 문자(제어 문자) 이후의 내용을 가져올 때 추가 공백도 제거
-        Content = line.Length > 1 ? line.Substring(1).TrimStart() : "";
+
+        if (line.Length > 1)
+        {
+            // Extract everything after the control character
+            string remaining = line.Substring(1);
+
+            // If the remaining starts with a space, remove it (diff format's space)
+            if (remaining.StartsWith(" "))
+            {
+                remaining = remaining.Substring(1);
+            }
+
+            // Extract leading whitespace after the first space
+            Indentation = WhitespaceHelper.ExtractLeadingWhitespace(remaining);
+
+            // Get content without the control character, first space, and leading whitespace
+            Content = remaining.TrimStart();
+        }
+        else
+        {
+            Content = "";
+            Indentation = "";
+        }
     }
 
     public bool IsContext => Type == ' ';
     public bool IsAddition => Type == '+';
     public bool IsRemoval => Type == '-';
     public bool IsEmpty => string.IsNullOrEmpty(RawContent);
-
-    public string GetNormalizedContent()
-    {
-        return Content.TrimStart(' ', '\t');
-    }
-
-    public string GetIndentation()
-    {
-        int i = 0;
-        while (i < Content.Length && (Content[i] == ' ' || Content[i] == '\t'))
-        {
-            i++;
-        }
-        return Content.Substring(0, i);
-    }
 }
 
 public static class DiffLineExtensions

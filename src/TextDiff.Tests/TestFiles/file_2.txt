@@ -1,0 +1,7 @@
+﻿public class Logger
+{
+    public void LogInfo(string message)
+    {
+        Console.WriteLine("INFO: " + message);
+    }
+}

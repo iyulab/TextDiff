@@ -7,6 +7,7 @@ public class BlockMatchScorer
     private readonly int _position;
     private int _score;
     private int _maxScore;
+    private bool _allTargetLinesExactMatch;
 
     public BlockMatchScorer(List<string> documentLines, DiffBlock block, int position)
     {
@@ -15,6 +16,7 @@ public class BlockMatchScorer
         _position = position;
         _score = 0;
         _maxScore = 0;
+        _allTargetLinesExactMatch = true;
     }
 
     public int Calculate()
@@ -22,6 +24,10 @@ public class BlockMatchScorer
         ScoreLeadingLines();
         ScoreTargetLines();
         ScoreTrailingLines();
+
+        // Ensure all target lines matched exactly
+        if (!_allTargetLinesExactMatch)
+            return 0;
 
         return _maxScore > 0 ? (_score * 100) / _maxScore : 0;
     }
@@ -37,6 +43,11 @@ public class BlockMatchScorer
             {
                 _score += CalculateLineMatchScore(_documentLines[checkIndex], _block.LeadingLines[i]);
             }
+            else
+            {
+                // 선행 라인이 누락된 경우 페널티 부여
+                _score -= 50;
+            }
         }
     }
 
@@ -49,7 +60,17 @@ public class BlockMatchScorer
 
             if (IsValidIndex(checkIndex))
             {
-                _score += CalculateLineMatchScore(_documentLines[checkIndex], _block.TargetLines[i]);
+                int lineScore = CalculateLineMatchScore(_documentLines[checkIndex], _block.TargetLines[i]);
+                _score += lineScore;
+
+                if (lineScore < 100)
+                {
+                    _allTargetLinesExactMatch = false;
+                }
+            }
+            else
+            {
+                _allTargetLinesExactMatch = false;
             }
         }
     }
@@ -64,6 +85,11 @@ public class BlockMatchScorer
             if (IsValidIndex(checkIndex))
             {
                 _score += CalculateLineMatchScore(_documentLines[checkIndex], _block.TrailingLines[i]);
+            }
+            else
+            {
+                // 후행 라인이 누락된 경우 페널티 부여
+                _score -= 50;
             }
         }
     }
