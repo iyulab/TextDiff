@@ -37,13 +37,9 @@ TextDiff.Sharp can be easily integrated into your C# project. You can add the so
 
 ### Using NuGet
 
-*Note: If TextDiff.Sharp is published to NuGet, you can install it using the following command:*
-
 ```bash
 Install-Package TextDiff.Sharp
 ```
-
-*Replace the package name with the actual NuGet package name if available.*
 
 ## Getting Started
 
