@@ -9,6 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TextDiff.Sharp", "TextDiff.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EBE023E2-6D54-4325-99C1-DA5E2CBAF0D8}"
 	ProjectSection(SolutionItems) = preProject
+		DEV.txt = DEV.txt
 		Directory.Build.props = Directory.Build.props
 	EndProjectSection
 EndProject

@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using TextDiff.Helpers;
 
 namespace TextDiff.Tests;
 
@@ -8,13 +9,13 @@ public static class TextComparisonHelper
     {
         if (expected == actual) return true;
 
-        var expectedLines = TextHelper.SplitLines(expected);
-        var actualLines = TextHelper.SplitLines(actual);
+        var expectedLines = TextUtils.SplitLines(expected);
+        var actualLines = TextUtils.SplitLines(actual);
 
-        if (expectedLines.Count != actualLines.Count)
+        if (expectedLines.Length != actualLines.Length)
             return false;
 
-        for (int i = 0; i < expectedLines.Count; i++)
+        for (int i = 0; i < expectedLines.Length; i++)
         {
             var expectedLine = expectedLines[i];
             var actualLine = actualLines[i];
@@ -33,17 +34,17 @@ public static class TextComparisonHelper
 
     public static string GetDifference(string expected, string actual)
     {
-        var expectedLines = TextHelper.SplitLines(expected);
-        var actualLines = TextHelper.SplitLines(actual);
+        var expectedLines = TextUtils.SplitLines(expected);
+        var actualLines = TextUtils.SplitLines(actual);
 
         var sb = new StringBuilder();
         sb.AppendLine("Differences found:");
 
-        var maxLines = Math.Max(expectedLines.Count, actualLines.Count);
+        var maxLines = Math.Max(expectedLines.Length, actualLines.Length);
         for (int i = 0; i < maxLines; i++)
         {
-            var expectedLine = i < expectedLines.Count ? expectedLines[i] : "(no line)";
-            var actualLine = i < actualLines.Count ? actualLines[i] : "(no line)";
+            var expectedLine = i < expectedLines.Length ? expectedLines[i] : "(no line)";
+            var actualLine = i < actualLines.Length ? actualLines[i] : "(no line)";
 
             if (string.IsNullOrWhiteSpace(expectedLine) && string.IsNullOrWhiteSpace(actualLine))
                 continue;

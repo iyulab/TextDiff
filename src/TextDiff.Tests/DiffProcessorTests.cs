@@ -1,15 +1,17 @@
-﻿using Xunit.Abstractions;
+﻿using TextDiff.Helpers;
+using TextDiff.Models;
+using Xunit.Abstractions;
 
 namespace TextDiff.Tests;
 
 public class DiffProcessorTests
 {
-    private readonly DiffProcessor _processor;
+    private readonly TextDiffer _differ;
     private readonly ITestOutputHelper _output;
 
     public DiffProcessorTests(ITestOutputHelper output)
     {
-        _processor = new DiffProcessor();
+        _differ = new TextDiffer();
         _output = output;
     }
 
@@ -35,7 +37,7 @@ new_line3
 line4";
 
         // Act
-        var result = _processor.Process(document, diff);
+        var result = _differ.Process(document, diff);
 
         // Log
         AssertWithOutput(document, diff, expectedResult, result, 2, 0, 0);
@@ -49,8 +51,8 @@ line4";
     {
         // Arrange
         var document = @"line1
-    line2
-    line3";
+line2
+line3";
 
         var diff = @" line1
 + line1.5
@@ -58,12 +60,12 @@ line4";
  line3";
 
         var expectedResult = @"line1
-    line1.5
-    line2
-    line3";
+line1.5
+line2
+line3";
 
         // Act
-        var result = _processor.Process(document, diff);
+        var result = _differ.Process(document, diff);
 
         // Log
         AssertWithOutput(document, diff, expectedResult, result, 0, 1, 0); // 변경 없음
@@ -88,7 +90,7 @@ line4";
     line3";
 
         // Act
-        var result = _processor.Process(document, diff);
+        var result = _differ.Process(document, diff);
 
         // Log
         AssertWithOutput(document, diff, expectedResult, result, 0, 0, 1); // 변경 없음
@@ -102,12 +104,12 @@ line4";
     {
         // Arrange
         var document = @"header1
-    line1
-    line2
-    line3
-    line4
-    footer1
-    footer2";
+line1
+line2
+line3
+line4
+footer1
+footer2";
 
         var diff = @" header1
 - line1
@@ -122,16 +124,16 @@ line4";
 + footer2_modified";
 
         var expectedResult = @"header1
-    new_line1
-    line2
-    new_line3
-    added_line3.1
-    line4
-    footer1
-    footer2_modified";
+new_line1
+line2
+new_line3
+added_line3.1
+line4
+footer1
+footer2_modified";
 
         // Act
-        var result = _processor.Process(document, diff);
+        var result = _differ.Process(document, diff);
 
         // Log
         AssertWithOutput(document, diff, expectedResult, result, 3, 1, 0);
@@ -165,7 +167,7 @@ line4";
 }";
 
         // Act
-        var result = _processor.Process(document, diff);
+        var result = _differ.Process(document, diff);
 
         // Log
         AssertWithOutput(document, diff, expectedResult, result, 2, 0, 0);
@@ -179,22 +181,22 @@ line4";
     {
         // Arrange
         var document = @"line1
-    line2
-    line1
-    line2
-    line3";
+line2
+line1
+line2
+line3";
 
         var diff = @" line1
 - line2
  line3";
 
         var expectedResult = @"line1
-    line2
-    line1
-    line3";
+line2
+line1
+line3";
 
         // Act
-        var result = _processor.Process(document, diff);
+        var result = _differ.Process(document, diff);
 
         // Log
         AssertWithOutput(document, diff, expectedResult, result, 0, 0, 1);
@@ -225,7 +227,7 @@ middle3
 end";
 
         // Act
-        var result = _processor.Process(document, diff);
+        var result = _differ.Process(document, diff);
 
         // Log
         AssertWithOutput(document, diff, expectedResult, result, 0, 3, 0);
@@ -254,7 +256,7 @@ end";
 end";
 
         // Act
-        var result = _processor.Process(document, diff);
+        var result = _differ.Process(document, diff);
 
         // Log
         AssertWithOutput(document, diff, expectedResult, result, 0, 0, 3);
@@ -287,7 +289,7 @@ newMiddle2
 end";
 
         // Act
-        var result = _processor.Process(document, diff);
+        var result = _differ.Process(document, diff);
 
         // Log
         AssertWithOutput(document, diff, expectedResult, result, 2, 0, 1);
@@ -313,7 +315,7 @@ line2
 line3";
 
         // Act
-        var result = _processor.Process(document, diff);
+        var result = _differ.Process(document, diff);
 
         // Log
         AssertWithOutput(document, diff, expectedResult, result, 0, 0, 0);
@@ -340,7 +342,7 @@ line3";
     line3";
 
         // Act
-        var result = _processor.Process(document, diff);
+        var result = _differ.Process(document, diff);
 
         // Log
         AssertWithOutput(document, diff, expectedResult, result, 1, 0, 0);
@@ -364,7 +366,7 @@ line2
 line3";
 
         // Act
-        var result = _processor.Process(document, diff);
+        var result = _differ.Process(document, diff);
 
         // Log
         AssertWithOutput(document, diff, expectedResult, result, 0, 3, 0);
@@ -390,7 +392,7 @@ line2
 line3";
 
         // Act
-        var result = _processor.Process(document, diff);
+        var result = _differ.Process(document, diff);
 
         // Log
         AssertWithOutput(document, diff, expectedResult, result, 0, 0, 0);
@@ -426,7 +428,7 @@ line4_modified
 line5";
 
         // Act
-        var result = _processor.Process(document, diff);
+        var result = _differ.Process(document, diff);
 
         // Log
         AssertWithOutput(document, diff, expectedResult, result, 2, 1, 0);
@@ -461,7 +463,7 @@ line4
 line5_modified";
 
         // Act
-        var result = _processor.Process(document, diff);
+        var result = _differ.Process(document, diff);
 
         // Log
         AssertWithOutput(document, diff, expectedResult, result, 3, 0, 0);
@@ -528,7 +530,7 @@ line5_modified";
     final-line";
 
         // Act
-        var result = _processor.Process(document, diff);
+        var result = _differ.Process(document, diff);
 
         // Log
         AssertWithOutput(document, diff, expectedResult, result, 2, 0, 0);
@@ -555,7 +557,7 @@ line5_modified";
     -end-line";
 
         // Act
-        var result = _processor.Process(document, diff);
+        var result = _differ.Process(document, diff);
 
         // Log
         AssertWithOutput(document, diff, expectedResult, result, 1, 0, 0);
@@ -591,7 +593,7 @@ new_line3
 new_line5";
 
         // Act
-        var result = _processor.Process(document, diff);
+        var result = _differ.Process(document, diff);
 
         // Log
         AssertWithOutput(document, diff, expectedResult, result, 2, 0, 0);
@@ -616,7 +618,7 @@ new_line5";
         var expectedResult = $"line1{Environment.NewLine}\tnew_indented_tab{Environment.NewLine}    indented_space{Environment.NewLine}\t    new_mixed_indent";
 
         // Act
-        var result = _processor.Process(document, diff);
+        var result = _differ.Process(document, diff);
 
         // Log
         AssertWithOutput(document, diff, expectedResult, result, 2, 0, 0);
@@ -625,7 +627,7 @@ new_line5";
         Assert.Equal(expectedResult, result.Text);
 
         // 추가 검증: 들여쓰기가 정확히 유지되는지 확인
-        var resultLines = TextHelper.SplitLines(result.Text);
+        var resultLines = TextUtils.SplitLines(result.Text);
         Assert.Equal("\tnew_indented_tab", resultLines[1]); // 탭 들여쓰기
         Assert.Equal("    indented_space", resultLines[2]); // 스페이스 들여쓰기
         Assert.Equal("\t    new_mixed_indent", resultLines[3]); // 혼합 들여쓰기
@@ -657,7 +659,7 @@ new_line5";
     end_plus+";
 
         // Act
-        var result = _processor.Process(document, diff);
+        var result = _differ.Process(document, diff);
 
         // Log
         AssertWithOutput(document, diff, expectedResult, result, 2, 0, 0);
@@ -684,7 +686,7 @@ new_line5";
     你好";
 
         // Act
-        var result = _processor.Process(document, diff);
+        var result = _differ.Process(document, diff);
 
         // Log
         AssertWithOutput(document, diff, expectedResult, result, 1, 0, 0);
@@ -706,31 +708,26 @@ new_line5";
 
         // Act & Assert
         var ex = Assert.Throws<FormatException>(() =>
-            _processor.Process(document, diff));
+            _differ.Process(document, diff));
         Assert.Contains("Invalid diff format: Line must start with space, '+'", ex.Message);
     }
 
     [Theory]
     [InlineData(
-        @">line1
- line2
-+new_line2",
-        "Line must start with space, '+'")]
-    [InlineData(
-        @"line1
+    @">line1
 line2
 +line3",
-        "Line must start with space, '+'")]  // 첫 줄에 컨텍스트 표시 누락
+    "Line must start with space, '+'")]  // 첫 줄에 잘못된 문자로 시작
     [InlineData(
-        @" line1
-- - line2
-+ new_line2",
-        "Duplicate control characters")]
+    @"line1
+line2
++line3",
+    "Line must start with space, '+'")]  // 첫 줄에 컨텍스트 표시 누락
     [InlineData(
-        @" line1
-@ line2
+    @" line1
+# line2
 + new_line2",
-        "Line must start with space, '+'")]
+    "Line must start with space, '+'")]  // 지원하지 않는 문자 사용
     public void TestInvalidDiffFormats(string diff, string expectedErrorMessage)
     {
         // Arrange
@@ -740,8 +737,26 @@ line3";
 
         // Act & Assert
         var ex = Assert.Throws<FormatException>(() =>
-            _processor.Process(document, diff));
+            _differ.Process(document, diff));
         Assert.Contains(expectedErrorMessage, ex.Message);
+    }
+
+    [Fact]
+    public void TestInvalidDiffMatchingFailure()
+    {
+        // Arrange
+        var document = @"line1
+line2
+line3";
+
+        var diff = @" line1
+- - line2
++ new_line2";  // 매칭에 실패하는 케이스
+
+        // Act & Assert
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            _differ.Process(document, diff));
+        Assert.Contains("Cannot find matching position for block", ex.Message);
     }
 
     [Fact]
@@ -758,7 +773,7 @@ line3";
  line3";
 
         // Act & Assert
-        Assert.Throws<InvalidOperationException>(() => _processor.Process(document, diff));
+        Assert.Throws<InvalidOperationException>(() => _differ.Process(document, diff));
     }
 
     #endregion
@@ -784,7 +799,7 @@ line3";
         var expectedResult = string.Join(Environment.NewLine, resultLines);
 
         // Act
-        var result = _processor.Process(document, diff);
+        var result = _differ.Process(document, diff);
 
         // Log
         _output.WriteLine($"Document length: {documentLines.Count} lines");
@@ -824,7 +839,7 @@ duplicate
 duplicate";
 
         // Act
-        var result = _processor.Process(document, diff);
+        var result = _differ.Process(document, diff);
 
         // Log
         AssertWithOutput(document, diff, expectedResult, result, changed: 1, added: 0, deleted: 0);
@@ -852,7 +867,7 @@ middle
 new_last_line";
 
         // Act
-        var result = _processor.Process(document, diff);
+        var result = _differ.Process(document, diff);
 
         // Log
         AssertWithOutput(document, diff, expectedResult, result, 2, 0, 0);

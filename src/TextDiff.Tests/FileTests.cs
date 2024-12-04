@@ -1,18 +1,19 @@
 ﻿using Xunit;
 using System.IO;
 using Xunit.Abstractions;
+using TextDiff.Models;
 
 namespace TextDiff.Tests;
 
 public class FileTests
 {
-    private readonly DiffProcessor _processor;
+    private readonly TextDiffer _differ;
     private readonly ITestOutputHelper _output;
     private const string TestFilesPath = "TestFiles";
 
     public FileTests(ITestOutputHelper output)
     {
-        _processor = new DiffProcessor();
+        _differ = new TextDiffer();
         _output = output;
     }
 
@@ -58,7 +59,7 @@ public class FileTests
         var expectedContent = File.ReadAllText(expectedFile);
 
         // Act
-        var result = _processor.Process(sourceContent, diffContent);
+        var result = _differ.Process(sourceContent, diffContent);
         AssertWithOutput(sourceContent, diffContent, expectedContent, result, 5, 1, 0);
     }
 
@@ -74,7 +75,7 @@ public class FileTests
         var expectedContent = File.ReadAllText(expectedFile);
 
         // Act
-        var result = _processor.Process(sourceContent, diffContent);
+        var result = _differ.Process(sourceContent, diffContent);
         AssertWithOutput(sourceContent, diffContent, expectedContent, result, 0, 5, 0);
     }
 
@@ -90,7 +91,7 @@ public class FileTests
         var expectedContent = File.ReadAllText(expectedFile);
 
         // Act
-        var result = _processor.Process(sourceContent, diffContent);
+        var result = _differ.Process(sourceContent, diffContent);
         AssertWithOutput(sourceContent, diffContent, expectedContent, result, 0, 0, 5);
     }
 
@@ -106,7 +107,7 @@ public class FileTests
         var expectedContent = File.ReadAllText(expectedFile);
 
         // Act
-        var result = _processor.Process(sourceContent, diffContent);
+        var result = _differ.Process(sourceContent, diffContent);
         AssertWithOutput(sourceContent, diffContent, expectedContent, result, 2, 6, 0);
         
     }
@@ -123,7 +124,7 @@ public class FileTests
         var expectedContent = File.ReadAllText(expectedFile);
 
         // Act
-        var result = _processor.Process(sourceContent, diffContent);
+        var result = _differ.Process(sourceContent, diffContent);
         AssertWithOutput(sourceContent, diffContent, expectedContent, result, 1, 4, 0);
     }
 
@@ -139,7 +140,7 @@ public class FileTests
         var expectedContent = File.ReadAllText(expectedFile);
 
         // Act
-        var result = _processor.Process(sourceContent, diffContent);
+        var result = _differ.Process(sourceContent, diffContent);
         AssertWithOutput(sourceContent, diffContent, expectedContent, result, 1, 4, 0);
     }
 }
