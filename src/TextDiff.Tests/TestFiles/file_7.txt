@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace PaymentProcessing
 {
@@ -8,10 +7,6 @@ namespace PaymentProcessing
     {
         public void ProcessPayment(decimal amount)
         {
-            if(amount <= 0)
-            {
-                throw new ArgumentException("Amount must be greater than zero.");
-            }
             Console.WriteLine($"Processing payment of {amount}");
         }
 
@@ -27,7 +22,7 @@ namespace PaymentProcessing
 
         public decimal CalculateTax(decimal amount)
         {
-            return amount * 0.20m;
+            return amount * 0.15m;
         }
 
         public void RefundPayment(decimal amount)

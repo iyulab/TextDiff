@@ -12,22 +12,30 @@ public class DiffBlockParser : IDiffBlockParser
             var line = diffLines[i];
             if (string.IsNullOrEmpty(line)) continue;
 
-            // Check for invalid format - line must start with space, '+' or '-'
-            char firstChar = line[0];
-            if (!DiffLineHelper.IsValidDiffLine(firstChar))
-                throw new FormatException($"Invalid diff format: Line must start with space, '+' or '-': {line}");
+            // Skip file headers
+            if (line.StartsWith("---") || line.StartsWith("+++"))
+                continue;
 
-            // For removal/addition lines, verify the format
-            if (firstChar != ' ')
+            // Start new block on hunk header
+            if (line.StartsWith("@@"))
             {
-                // The second character should be a space for proper diff format
-                if (line.Length < 2 || (line[1] != ' ' && !string.IsNullOrEmpty(line)))
-                    throw new FormatException($"Invalid diff format: After '+' or '-', expected space but got: {line}");
+                if (currentBlock.HasChanges())
+                {
+                    yield return currentBlock;
+                }
+                currentBlock = new DiffBlock();
+                isInChanges = false;
+                continue;
             }
 
-            var content = DiffLineHelper.ExtractContent(line);
+            // Check for invalid format
+            if (line.Length < 1 || !DiffLineHelper.IsValidDiffLine(line[0]))
+                throw new FormatException($"Invalid diff format: Line must start with space, '+' or '-': {line}");
 
-            switch (firstChar)
+            // 공백/+/- 다음의 공백 한 칸은 제거해서 저장
+            string content = DiffLineHelper.ExtractContent(line);
+
+            switch (line[0])
             {
                 case ' ':
                     if (!isInChanges)
@@ -36,13 +44,9 @@ public class DiffBlockParser : IDiffBlockParser
                     }
                     else
                     {
-                        bool hasMoreChanges = HasMoreChanges(diffLines, i + 1);
-                        if (hasMoreChanges && currentBlock.HasChanges())
+                        if (HasMoreChanges(diffLines, i + 1))
                         {
-                            // Finish current block
                             yield return currentBlock;
-
-                            // Start new block with this context line
                             currentBlock = new DiffBlock();
                             currentBlock.BeforeContext.Add(content);
                             isInChanges = false;
@@ -76,12 +80,13 @@ public class DiffBlockParser : IDiffBlockParser
     {
         for (int i = startIndex; i < lines.Length; i++)
         {
-            if (!string.IsNullOrEmpty(lines[i]))
-            {
-                char firstChar = lines[i][0];
-                if (firstChar == '-' || firstChar == '+')
-                    return true;
-            }
+            var line = lines[i];
+            if (string.IsNullOrEmpty(line)) continue;
+            if (line.StartsWith("---") || line.StartsWith("+++") || line.StartsWith("@@"))
+                continue;
+
+            if (line.Length > 0 && (line[0] == '-' || line[0] == '+'))
+                return true;
         }
         return false;
     }

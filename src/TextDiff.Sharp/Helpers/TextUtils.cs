@@ -1,7 +1,45 @@
 ﻿namespace TextDiff.Helpers;
 
+/*
+의도:
+1. 들여쓰기 처리를 위한 유틸리티 메서드 제공
+2. 일관된 들여쓰기 추출 및 제거 로직 제공
+
+유의사항:
+1. 빈 문자열 처리 주의
+2. 탭과 스페이스 모두 고려
+3. 전체 라인이 공백인 경우 처리
+*/
+
 public static class TextUtils
 {
+
+    public static string RemoveIndentation(string line)
+    {
+        if (string.IsNullOrEmpty(line))
+            return line;
+
+        int i = 0;
+        while (i < line.Length && char.IsWhiteSpace(line[i]))
+        {
+            i++;
+        }
+        return i < line.Length ? line.Substring(i) : line;
+    }
+
+    public static string ExtractIndentation(string line)
+    {
+        if (string.IsNullOrEmpty(line))
+            return string.Empty;
+
+        int i = 0;
+        while (i < line.Length && char.IsWhiteSpace(line[i]))
+        {
+            i++;
+        }
+        return i > 0 ? line.Substring(0, i) : string.Empty;
+    }
+
     public static string[] SplitLines(string text)
     {
         if (string.IsNullOrEmpty(text))
@@ -38,16 +76,46 @@ public static class TextUtils
 
     public static bool LinesMatch(string line1, string line2)
     {
-        return line1.TrimStart() == line2.TrimStart();
+        // 1. 양쪽 끝의 공백 제거
+        string trimmedLine1 = line1.Trim();
+        string trimmedLine2 = line2.Trim();
+
+        // 2. 연속된 공백을 단일 공백으로 치환
+        trimmedLine1 = NormalizeWhitespace(trimmedLine1);
+        trimmedLine2 = NormalizeWhitespace(trimmedLine2);
+
+        return trimmedLine1 == trimmedLine2;
     }
 
-    public static string ExtractIndentation(string line)
+    private static string NormalizeWhitespace(string input)
     {
-        int i = 0;
-        while (i < line.Length && char.IsWhiteSpace(line[i]))
-        {
-            i++;
-        }
-        return i > 0 ? line.Substring(0, i) : "";
+        return string.Join(" ", input.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries));
     }
+
+    public static bool LinesMatchIgnoreIndentation(string line1, string line2)
+    {
+        // 들여쓰기를 제거하고 비교
+        string trimmed1 = line1.TrimStart();
+        string trimmed2 = line2.TrimStart();
+
+        // 양쪽 끝의 공백 제거
+        trimmed1 = trimmed1.Trim();
+        trimmed2 = trimmed2.Trim();
+
+        // 연속된 공백을 단일 공백으로 치환
+        trimmed1 = NormalizeWhitespace(trimmed1);
+        trimmed2 = NormalizeWhitespace(trimmed2);
+
+        return trimmed1 == trimmed2;
+    }
+
+    public static int GetRelativeIndentation(string baseLine, string newLine)
+    {
+        int baseIndent = baseLine.TakeWhile(char.IsWhiteSpace).Count();
+        int newIndent = newLine.TakeWhile(char.IsWhiteSpace).Count();
+
+        // 상대적 들여쓰기 계산 (최소 0 반환)
+        return Math.Max(0, newIndent - baseIndent);
+    }
+
 }
