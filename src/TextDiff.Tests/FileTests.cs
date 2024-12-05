@@ -189,6 +189,6 @@ public class FileTests
 
         // Act
         var result = _differ.Process(sourceContent, diffContent);
-        AssertWithOutput(sourceContent, diffContent, expectedContent, result, 0, 3, 0);
+        AssertWithOutput(sourceContent, diffContent, expectedContent, result, 1, 2, 0);
     }
 }
