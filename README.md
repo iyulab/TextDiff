@@ -1,33 +1,17 @@
 # TextDiff.Sharp
 
-**TextDiff.Sharp** is a robust and efficient C# library designed for parsing, analyzing, and applying textual diffs to documents. Whether you're building a version control system, a text editor with diff capabilities, or any application that requires detailed text comparison and manipulation, TextDiff.Sharp provides the tools you need to handle complex diff operations seamlessly.
+**TextDiff.Sharp** is a powerful and efficient C# library specifically designed for applying diffs to original text documents. If you have a diff file and an original document, TextDiff.Sharp allows you to seamlessly patch the diff onto the original, producing the updated document. This makes it an ideal tool for applications that need to update documents based on diff files, such as version control systems, code editors, or any text manipulation utilities that rely on diff operations.
 
-## Table of Contents
+## Key Features
 
-- [Features](#features)
-- [Installation](#installation)
-- [Getting Started](#getting-started)
-  - [Basic Usage](#basic-usage)
-  - [Advanced Usage](#advanced-usage)
-- [API Reference](#api-reference)
-- [Examples](#examples)
-- [Testing](#testing)
-- [Contributing](#contributing)
-- [License](#license)
-
-## Features
-
-- **Diff Parsing:** Efficiently parses diff texts into manageable blocks.
-- **Change Tracking:** Accurately tracks added, deleted, and changed lines.
-- **Line Matching:** Intelligent line matching with similarity scoring to handle ambiguous cases.
-- **Whitespace Handling:** Robust handling of whitespace differences to ensure meaningful comparisons.
-- **String Similarity:** Utilizes Levenshtein Distance for precise string similarity calculations.
-- **Comprehensive Testing:** Includes a suite of unit tests to ensure reliability and correctness.
-- **Extensible Architecture:** Designed with extensibility in mind, allowing for easy integration and customization.
+- **Apply Diffs to Originals**: Precisely patch diff files onto original documents to generate updated versions.
+- **Robust Parsing**: Accurately parse diff files, handling various diff formats and edge cases.
+- **High Performance**: Optimized for efficiency, suitable for large documents and complex diffs.
+- **Easy Integration**: Simple API that can be easily integrated into your C# projects.
 
 ## Installation
 
-TextDiff.Sharp can be easily integrated into your C# project. You can add the source files directly or include it as a project reference.
+TextDiff.Sharp can be seamlessly integrated into your C# project. You can include it using source files or via NuGet.
 
 ### Using Source Files
 
@@ -39,295 +23,109 @@ TextDiff.Sharp can be easily integrated into your C# project. You can add the so
 
 ```bash
 Install-Package TextDiff.Sharp
+
+# or
+
+dotnet add package TextDiff.Sharp
 ```
 
 ## Getting Started
 
-### Basic Usage
+To start using TextDiff.Sharp for applying diffs to original documents, follow the example below.
 
-Here's a simple example of how to use TextDiff.Sharp to apply a diff to a document:
+### Example: Applying a Diff to a Text Document
 
 ```csharp
 using TextDiff;
-using System;
 
-class Program
+// Original document
+string originalText = @"line1
+line2
+line3";
+
+// Diff to be applied
+string diffText = @" line1
+- line2
++ line2_modified
+ line3";
+
+// Create a TextDiffer instance
+var textDiffer = new TextDiffer();
+
+// Process the diff
+var result = textDiffer.Process(originalText, diffText);
+
+// Get the updated text
+string updatedText = result.Text;
+
+// Output the updated text
+Console.WriteLine(updatedText);
+
+/* Output:
+line1
+line2_modified
+line3
+*/
+```
+
+In this example:
+
+- The original document contains three lines: `line1`, `line2`, and `line3`.
+- The diff indicates that `line2` should be replaced with `line2_modified`.
+- Using `TextDiffer.Process`, the diff is applied to the original text.
+- The resulting `updatedText` reflects the change specified by the diff.
+
+## Exploring the Code
+
+To gain a deeper understanding of how TextDiff.Sharp applies diffs to original documents, you can examine the test files included in the repository:
+
+- **DiffProcessorTests.cs**  
+  Located at `/src/TextDiff.Tests/DiffProcessorTests.cs`, this file contains unit tests demonstrating various scenarios of applying diffs to original texts. The tests cover simple replacements, insertions, deletions, and complex changes, showcasing the library's capabilities.
+
+### Sample Test Case from DiffProcessorTests.cs
+
+```csharp
+[Fact]
+public void TestSimpleDeleteAndInsert()
 {
-    static void Main(string[] args)
-    {
-        var document = @"line1
+    // Arrange
+    var original = @"line1
 line2
 line3
 line4";
 
-        var diff = @" line1
+    var diff = @" line1
 - line2
-- line3
 + new_line2
-+ new_line3
+ line3
  line4";
 
-        var processor = new DiffProcessor();
-        var result = processor.Process(document, diff);
+    var expected = @"line1
+new_line2
+line3
+line4";
 
-        Console.WriteLine("Updated Document:");
-        Console.WriteLine(result.Text);
-        Console.WriteLine("\nChange Summary:");
-        Console.WriteLine($"Added Lines: {result.Changes.AddedLines}");
-        Console.WriteLine($"Deleted Lines: {result.Changes.DeletedLines}");
-        Console.WriteLine($"Changed Lines: {result.Changes.ChangedLines}");
-    }
+    // Act
+    var result = _differ.Process(original, diff);
+
+    // Assert
+    Assert.Equal(expected, result.Text);
 }
 ```
 
-**Output:**
-```
-Updated Document:
-line1
-new_line2
-new_line3
-line4
+In this test case:
 
-Change Summary:
-Added Lines: 2
-Deleted Lines: 2
-Changed Lines: 0
-```
+- The original document has four lines.
+- The diff replaces `line2` with `new_line2`.
+- The `Process` method applies the diff to the original text.
+- The test asserts that the resulting text matches the expected output.
 
-### Advanced Usage
+## How It Works
 
-For more complex scenarios involving multiple diff blocks, whitespace handling, and similarity scoring, refer to the [Examples](#examples) section below.
+TextDiff.Sharp processes diffs line by line, matching context lines and applying additions and deletions accordingly:
 
-## API Reference
+- **Context Lines**: Lines that start with a space `' '` represent unchanged lines in the diff and are used to align the diff with the original document.
+- **Deletion Lines**: Lines that start with a minus `'-'` indicate lines to be removed from the original document.
+- **Addition Lines**: Lines that start with a plus `'+'` represent new lines to be inserted into the original document.
 
-### `DiffProcessor`
-
-**Namespace:** `TextDiff`
-
-The main class responsible for processing diffs and applying them to documents.
-
-- **Methods:**
-  - `Process(string documentText, string diffText)`: Applies the given diff to the document and returns the result.
-
-### `DiffParser`
-
-**Namespace:** `TextDiff`
-
-Parses diff texts into structured `DiffBlock` objects.
-
-- **Methods:**
-  - `Parse(string diffText)`: Parses the diff text and returns a list of `DiffBlock` instances.
-
-### `DiffBlock`
-
-**Namespace:** `TextDiff`
-
-Represents a block of differences, including leading, trailing, target, and insert lines.
-
-- **Properties:**
-  - `IReadOnlyList<string> TargetLines`
-  - `IReadOnlyList<string> LeadingLines`
-  - `IReadOnlyList<string> TrailingLines`
-  - `IReadOnlyList<string> InsertLines`
-
-- **Methods:**
-  - `AddTargetLine(DiffLine line)`
-  - `AddLeadingLine(DiffLine line)`
-  - `AddTrailingLine(DiffLine line)`
-  - `AddInsertLine(DiffLine line)`
-  - `GetCommonIndentation()`
-
-### `ChangeStats`
-
-**Namespace:** `TextDiff`
-
-Tracks statistics about changes, including added, deleted, and changed lines.
-
-- **Methods:**
-  - `UpdateStats(DiffBlock block)`
-  - `ToResult()`: Converts the statistics to a `DocumentChangeResult`.
-
-### `DocumentChange`
-
-**Namespace:** `TextDiff`
-
-Represents a single change to be applied to the document.
-
-- **Properties:**
-  - `int LineNumber`
-  - `IReadOnlyList<string> LinesToRemove`
-  - `IReadOnlyList<string> LinesToInsert`
-
-### `DocumentChangeResult`
-
-**Namespace:** `TextDiff`
-
-Holds the summary of changes after processing a diff.
-
-- **Properties:**
-  - `int DeletedLines`
-  - `int ChangedLines`
-  - `int AddedLines`
-
-### `StringSimilarityCalculator`
-
-**Namespace:** `TextDiff`
-
-Provides functionality to calculate the similarity between two strings using Levenshtein Distance.
-
-- **Methods:**
-  - `Calculate(string str1, string str2)`: Returns a similarity score between 0.0 and 1.0.
-
-## Examples
-
-### Applying a Simple Diff
-
-```csharp
-var document = @"line1
-line2
-line3
-line4";
-
-var diff = @" line1
-- line2
-- line3
-+ new_line2
-+ new_line3
- line4";
-
-var processor = new DiffProcessor();
-var result = processor.Process(document, diff);
-
-Console.WriteLine(result.Text);
-```
-
-**Output:**
-```
-line1
-new_line2
-new_line3
-line4
-```
-
-### Handling Additions Only
-
-```csharp
-var document = @"line1
-    line2
-    line3";
-
-var diff = @" line1
-+ line1.5
- line2
- line3";
-
-var result = processor.Process(document, diff);
-
-Console.WriteLine(result.Text);
-```
-
-**Output:**
-```
-line1
-    line1.5
-    line2
-    line3
-```
-
-### Handling Deletions Only
-
-```csharp
-var document = @"line1
-    line2
-    line3";
-
-var diff = @" line1
-- line2
- line3";
-
-var result = processor.Process(document, diff);
-
-Console.WriteLine(result.Text);
-```
-
-**Output:**
-```
-line1
-    line3
-```
-
-### Complex Changes with Multiple Diff Blocks
-
-```csharp
-var document = @"header1
-    line1
-    line2
-    line3
-    line4
-    footer1
-    footer2";
-
-var diff = @" header1
-- line1
-+ new_line1
- line2
-- line3
-+ new_line3
-+ added_line3.1
- line4
- footer1
-- footer2
-+ footer2_modified";
-
-var result = processor.Process(document, diff);
-
-Console.WriteLine(result.Text);
-```
-
-**Output:**
-```
-header1
-    new_line1
-    line2
-    new_line3
-    added_line3.1
-    line4
-    footer1
-    footer2_modified
-```
-
-## Testing
-
-TextDiff.Sharp includes a comprehensive suite of unit tests to ensure functionality and reliability. The tests are located in the `TextDiff.Tests` project and cover various scenarios, including simple additions and deletions, complex multi-line changes, whitespace handling, and more.
-
-To run the tests:
-
-1. Open the solution in your preferred IDE (e.g., Visual Studio).
-2. Build the solution to restore all dependencies.
-3. Navigate to the Test Explorer.
-4. Run all tests to ensure everything is working as expected.
-
-## Contributing
-
-Contributions are welcome! If you'd like to improve TextDiff.Sharp, please follow these guidelines:
-
-1. **Fork the Repository:** Click the "Fork" button at the top-right corner of the repository page.
-2. **Clone the Fork:** Clone your forked repository to your local machine.
-3. **Create a Branch:** Create a new branch for your feature or bugfix.
-   ```bash
-   git checkout -b feature/YourFeatureName
-   ```
-4. **Make Changes:** Implement your changes and ensure they align with the existing code style.
-5. **Run Tests:** Ensure all tests pass and add new tests for your changes if necessary.
-6. **Commit and Push:** Commit your changes and push them to your fork.
-   ```bash
-   git commit -m "Add feature XYZ"
-   git push origin feature/YourFeatureName
-   ```
-7. **Create a Pull Request:** Navigate to the original repository and create a pull request from your fork.
-
-Please ensure your code adheres to the project's coding standards and that all tests pass before submitting a pull request.
-
-## License
-
-This project is licensed under the [MIT License](LICENSE).
+The library ensures that the diff is applied accurately, even in cases where the diff contains complex changes, special characters, or whitespace variations.
