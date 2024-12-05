@@ -1,0 +1,5 @@
+ def greet(name):
++    if not name:
++        print("Hello, World")
++    else:
+     print(f"Hello, {name}")

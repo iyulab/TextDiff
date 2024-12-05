@@ -129,7 +129,7 @@ public class FileTests
     }
 
     [Fact]
-    public void TestFile6_MultiParts()
+    public void TestFile6_SkipCode()
     {
         // Arrange
         var sourceFile = Path.Combine(TestFilesPath, "file_6.txt");
@@ -141,7 +141,7 @@ public class FileTests
 
         // Act
         var result = _differ.Process(sourceContent, diffContent);
-        AssertWithOutput(sourceContent, diffContent, expectedContent, result, 1, 4, 0);
+        AssertWithOutput(sourceContent, diffContent, expectedContent, result, 1, 5, 0);
     }
 
     [Fact]
@@ -157,6 +157,38 @@ public class FileTests
 
         // Act
         var result = _differ.Process(sourceContent, diffContent);
-        AssertWithOutput(sourceContent, diffContent, expectedContent, result, 1, 4, 0);
+        AssertWithOutput(sourceContent, diffContent, expectedContent, result, 1, 17, 0);
+    }
+
+    [Fact]
+    public void TestFile8_()
+    {
+        // Arrange
+        var sourceFile = Path.Combine(TestFilesPath, "file_8.txt");
+        var diffFile = Path.Combine(TestFilesPath, "file_8_diff.txt");
+        var expectedFile = Path.Combine(TestFilesPath, "file_8_changed.txt");
+        var sourceContent = File.ReadAllText(sourceFile);
+        var diffContent = File.ReadAllText(diffFile);
+        var expectedContent = File.ReadAllText(expectedFile);
+
+        // Act
+        var result = _differ.Process(sourceContent, diffContent);
+        AssertWithOutput(sourceContent, diffContent, expectedContent, result, 0, 3, 0);
+    }
+
+    [Fact]
+    public void TestFile9_()
+    {
+        // Arrange
+        var sourceFile = Path.Combine(TestFilesPath, "file_9.txt");
+        var diffFile = Path.Combine(TestFilesPath, "file_9_diff.txt");
+        var expectedFile = Path.Combine(TestFilesPath, "file_9_changed.txt");
+        var sourceContent = File.ReadAllText(sourceFile);
+        var diffContent = File.ReadAllText(diffFile);
+        var expectedContent = File.ReadAllText(expectedFile);
+
+        // Act
+        var result = _differ.Process(sourceContent, diffContent);
+        AssertWithOutput(sourceContent, diffContent, expectedContent, result, 0, 3, 0);
     }
 }

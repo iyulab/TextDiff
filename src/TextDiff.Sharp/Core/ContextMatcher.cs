@@ -20,28 +20,27 @@ namespace TextDiff.Core;
 /// 3. 텍스트 내용, 공백, 빈 줄 등에 가중치를 부여하여 매칭 점수를 계산합니다.
 /// 4. 최고 점수의 90% 이상인 후보들 중에서 이전 매칭 위치와 가장 가까운 것을 선택합니다.
 /// </remarks>
+
 public class ContextMatcher : IContextMatcher
 {
     private int _lastMatchEnd = 0;
+    private const double CONTINUITY_WEIGHT = 2.0;
+    private const double CONTEXT_WEIGHT = 1.0;
+    private const double PATTERN_WEIGHT = 0.5;
 
     public int FindPosition(string[] documentLines, int startPosition, DiffBlock block)
     {
-        // 컨텍스트 패턴 분석
         var candidates = new List<MatchCandidate>();
         var pattern = AnalyzeContextPattern(block);
+        bool isProgressiveBlock = IsProgressiveBlock(block);
 
         // 각 가능한 위치에서 매칭 시도
         for (int i = startPosition; i < documentLines.Length - block.BeforeContext.Count; i++)
         {
-            // removal이 필요한 위치의 유효성 확인
-            if (block.Removals.Any())
-            {
-                if (!ValidateRemovalPosition(documentLines, i, block))
-                    continue;
-            }
+            if (block.Removals.Any() && !ValidateRemovalPosition(documentLines, i, block))
+                continue;
 
-            // 주변 컨텍스트 고려한 매칭 시도
-            var match = TryMatchWithContext(documentLines, i, block, pattern);
+            var match = TryMatchWithContext(documentLines, i, block, pattern, isProgressiveBlock);
             if (match.IsMatch)
             {
                 candidates.Add(new MatchCandidate(i, match.Score));
@@ -53,11 +52,61 @@ public class ContextMatcher : IContextMatcher
             throw new InvalidOperationException($"Cannot find matching position for block: {block}");
         }
 
-        // 가장 적절한 후보 선택
         var bestMatch = SelectBestMatch(candidates);
         _lastMatchEnd = bestMatch.Position + block.BeforeContext.Count + block.Removals.Count;
 
         return bestMatch.Position;
+    }
+
+    private bool IsProgressiveBlock(DiffBlock block)
+    {
+        // 컨텍스트가 적고 변경사항이 많은 경우 진행형 블록으로 간주
+        return block.BeforeContext.Count <= 2 &&
+               (block.Additions.Count > 2 || block.Removals.Count > 2);
+    }
+
+    private (bool IsMatch, double Score) TryMatchWithContext(
+        string[] documentLines,
+        int position,
+        DiffBlock block,
+        ContextPattern pattern,
+        bool isProgressiveBlock)
+    {
+        if (!IsBasicContextMatch(documentLines, position, block))
+            return (false, 0);
+
+        // 점수 계산을 위한 개별 컴포넌트
+        var continuityScore = CalculateContinuityScore(position, isProgressiveBlock);
+        var contextScore = EvaluateSurroundingContext(documentLines, position, block);
+        var patternScore = CalculatePatternSimilarity(documentLines, position, block, pattern);
+
+        // 가중치를 적용한 최종 점수 계산
+        double finalScore = (continuityScore * CONTINUITY_WEIGHT +
+                           contextScore * CONTEXT_WEIGHT +
+                           patternScore * PATTERN_WEIGHT) /
+                           (CONTINUITY_WEIGHT + CONTEXT_WEIGHT + PATTERN_WEIGHT);
+
+        return (true, finalScore);
+    }
+
+    private double CalculateContinuityScore(int position, bool isProgressiveBlock)
+    {
+        if (_lastMatchEnd == 0)
+            return 1.0;
+
+        double distance = Math.Abs(position - _lastMatchEnd);
+
+        if (isProgressiveBlock)
+        {
+            // 진행형 블록의 경우 연속성에 더 높은 가중치 부여
+            if (position == _lastMatchEnd) return 1.0;
+            if (distance <= 2) return 0.9;
+            if (distance <= 5) return 0.7;
+            return Math.Max(0.1, 1.0 - (distance / 20.0));
+        }
+
+        // 일반 블록의 경우 기존 로직 유지
+        return Math.Max(0.1, 1.0 - (distance / 50.0));
     }
 
     private bool ValidateRemovalPosition(string[] documentLines, int position, DiffBlock block)
@@ -66,7 +115,6 @@ public class ContextMatcher : IContextMatcher
         if (removalStart + block.Removals.Count > documentLines.Length)
             return false;
 
-        // 삭제될 라인들이 실제로 존재하는지 확인
         for (int i = 0; i < block.Removals.Count; i++)
         {
             if (!TextUtils.HasTextSimilarity(
@@ -80,42 +128,19 @@ public class ContextMatcher : IContextMatcher
         return true;
     }
 
-    private (bool IsMatch, double Score) TryMatchWithContext(
-        string[] documentLines,
-        int position,
-        DiffBlock block,
-        ContextPattern pattern)
-    {
-        // 1. 기본 컨텍스트 매칭
-        if (!IsBasicContextMatch(documentLines, position, block))
-            return (false, 0);
-
-        double score = 1.0;
-
-        // 2. 주변 컨텍스트 평가
-        var surroundingScore = EvaluateSurroundingContext(documentLines, position, block);
-        score *= surroundingScore;
-
-        // 3. 이전 매칭과의 연속성 평가
-        score *= CalculateContinuityScore(position);
-
-        // 4. 패턴 유사도 평가
-        score *= CalculatePatternSimilarity(documentLines, position, block, pattern);
-
-        return (true, score);
-    }
-
     private bool IsBasicContextMatch(string[] documentLines, int position, DiffBlock block)
     {
-        // BeforeContext 매칭
         for (int i = 0; i < block.BeforeContext.Count; i++)
         {
             if (position + i >= documentLines.Length)
                 return false;
 
+            var line = block.BeforeContext[i];
+            if (string.IsNullOrWhiteSpace(line)) continue;
+
             if (!TextUtils.HasTextSimilarity(
                 documentLines[position + i],
-                block.BeforeContext[i]))
+                line))
             {
                 return false;
             }
@@ -128,14 +153,12 @@ public class ContextMatcher : IContextMatcher
     {
         double score = 1.0;
 
-        // 1. 이전 라인들의 컨텍스트 평가
         if (position > 0)
         {
             var prevLines = GetPreviousLines(documentLines, position, 2);
             score *= CalculateContextSimilarity(prevLines, block);
         }
 
-        // 2. 이후 라인들의 컨텍스트 평가
         int afterStart = position + block.BeforeContext.Count + block.Removals.Count;
         if (afterStart < documentLines.Length)
         {
@@ -147,6 +170,21 @@ public class ContextMatcher : IContextMatcher
         }
 
         return score;
+    }
+
+    private MatchCandidate SelectBestMatch(List<MatchCandidate> candidates)
+    {
+        var maxScore = candidates.Max(c => c.Score);
+        var threshold = maxScore * 0.8; // 더 엄격한 임계값 적용
+
+        var bestCandidates = candidates
+            .Where(c => c.Score >= threshold)
+            .ToList();
+
+        return bestCandidates
+            .OrderByDescending(c => c.Score)
+            .ThenBy(c => Math.Abs(c.Position - _lastMatchEnd))
+            .First();
     }
 
     private List<string> GetPreviousLines(string[] documentLines, int position, int count)
@@ -195,15 +233,6 @@ public class ContextMatcher : IContextMatcher
         }
 
         return (similarity + 1.0) / (Math.Min(afterLines.Count, afterContext.Count) + 1.0);
-    }
-
-    private double CalculateContinuityScore(int position)
-    {
-        if (_lastMatchEnd == 0)
-            return 1.0;
-
-        double distance = Math.Abs(position - _lastMatchEnd);
-        return 1.0 + Math.Max(0, 0.5 - (distance / 50.0));
     }
 
     private double CalculatePatternSimilarity(
@@ -272,20 +301,6 @@ public class ContextMatcher : IContextMatcher
         }
 
         return count > 0 ? 1.0 - (totalDiff / count) : 1.0;
-    }
-
-    private MatchCandidate SelectBestMatch(List<MatchCandidate> candidates)
-    {
-        double maxScore = candidates.Max(c => c.Score);
-        var bestCandidates = candidates
-            .Where(c => c.Score >= maxScore * 0.9)
-            .ToList();
-
-        // 이전 매칭과의 거리를 고려하여 최적의 후보 선택
-        return bestCandidates
-            .OrderByDescending(c => c.Score)
-            .ThenBy(c => Math.Abs(c.Position - _lastMatchEnd))
-            .First();
     }
 
     private class ContextPattern

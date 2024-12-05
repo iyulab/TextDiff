@@ -32,7 +32,7 @@
 +            var taxRate = GetTaxRate();
 +            return amount * taxRate;
          }
-
++
 +        private decimal GetTaxRate()
 +        {
 +            return 0.15m;
@@ -42,7 +42,7 @@
 @@ -32,5 +41,9 @@
              Console.WriteLine($"Refunding payment of {amount}");
          }
-
++
 +        public void GenerateReceipt(decimal amount)
 +        {
 +            Console.WriteLine($"Receipt generated for payment of {amount}");

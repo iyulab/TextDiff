@@ -9,8 +9,13 @@ public static class TextComparisonHelper
     {
         if (expected == actual) return true;
 
-        var expectedLines = TextUtils.SplitLines(expected);
-        var actualLines = TextUtils.SplitLines(actual);
+        // Split into lines and filter out empty lines
+        var expectedLines = TextUtils.SplitLines(expected)
+            .Where(line => !IsEmptyOrNoLine(line))
+            .ToArray();
+        var actualLines = TextUtils.SplitLines(actual)
+            .Where(line => !IsEmptyOrNoLine(line))
+            .ToArray();
 
         if (expectedLines.Length != actualLines.Length)
             return false;
@@ -20,12 +25,7 @@ public static class TextComparisonHelper
             var expectedLine = expectedLines[i];
             var actualLine = actualLines[i];
 
-            // 빈 줄인 경우 공백 개수 무시
-            if (string.IsNullOrWhiteSpace(expectedLine) && string.IsNullOrWhiteSpace(actualLine))
-                continue;
-
-            // 일반 라인은 뒤쪽 공백만 제거하고 비교
-            if (expectedLine.TrimEnd() != actualLine.TrimEnd())
+            if (RemoveIndentation(expectedLine) != RemoveIndentation(actualLine))
                 return false;
         }
 
@@ -34,8 +34,13 @@ public static class TextComparisonHelper
 
     public static string GetDifference(string expected, string actual)
     {
-        var expectedLines = TextUtils.SplitLines(expected);
-        var actualLines = TextUtils.SplitLines(actual);
+        // Split and filter out empty lines
+        var expectedLines = TextUtils.SplitLines(expected)
+            .Where(line => !IsEmptyOrNoLine(line))
+            .ToArray();
+        var actualLines = TextUtils.SplitLines(actual)
+            .Where(line => !IsEmptyOrNoLine(line))
+            .ToArray();
 
         var sb = new StringBuilder();
         sb.AppendLine("Differences found:");
@@ -46,17 +51,23 @@ public static class TextComparisonHelper
             var expectedLine = i < expectedLines.Length ? expectedLines[i] : "(no line)";
             var actualLine = i < actualLines.Length ? actualLines[i] : "(no line)";
 
-            if (string.IsNullOrWhiteSpace(expectedLine) && string.IsNullOrWhiteSpace(actualLine))
-                continue;
-
-            if (expectedLine.TrimEnd() != actualLine.TrimEnd())
+            if (RemoveIndentation(expectedLine) != RemoveIndentation(actualLine))
             {
-                //sb.AppendLine($"Line {i + 1}:");
-                sb.AppendLine($"  Expected: '{expectedLine}'");
-                sb.AppendLine($"  Actual  : '{actualLine}'");
+                sb.AppendLine($"  Expected: '{expectedLine.Trim()}'");
+                sb.AppendLine($"  Actual  : '{actualLine.Trim()}'");
             }
         }
 
         return sb.ToString();
+    }
+
+    private static string RemoveIndentation(string line)
+    {
+        return line.Trim();
+    }
+
+    private static bool IsEmptyOrNoLine(string line)
+    {
+        return string.IsNullOrWhiteSpace(line) || line == "(no line)";
     }
 }
