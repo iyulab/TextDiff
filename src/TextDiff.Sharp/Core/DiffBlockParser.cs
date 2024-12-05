@@ -10,10 +10,13 @@ public class DiffBlockParser : IDiffBlockParser
         for (int i = 0; i < diffLines.Length; i++)
         {
             var line = diffLines[i];
-            if (string.IsNullOrEmpty(line)) continue;
 
             // Skip file headers
             if (line.StartsWith("---") || line.StartsWith("+++"))
+                continue;
+
+            // Skip comment
+            if (line.Equals("..."))
                 continue;
 
             // Start new block on hunk header
@@ -28,8 +31,32 @@ public class DiffBlockParser : IDiffBlockParser
                 continue;
             }
 
+            // 비어있는 라인도 컨텍스트로 처리
+            if (string.IsNullOrEmpty(line))
+            {
+                if (!isInChanges)
+                {
+                    currentBlock.BeforeContext.Add(line);
+                }
+                else
+                {
+                    if (HasMoreChanges(diffLines, i + 1))
+                    {
+                        yield return currentBlock;
+                        currentBlock = new DiffBlock();
+                        currentBlock.BeforeContext.Add(line);
+                        isInChanges = false;
+                    }
+                    else
+                    {
+                        currentBlock.AfterContext.Add(line);
+                    }
+                }
+                continue;
+            }
+
             // Check for invalid format
-            if (line.Length < 1 || !DiffLineHelper.IsValidDiffLine(line[0]))
+            if (!DiffLineHelper.IsValidDiffLine(line[0]))
                 throw new FormatException($"Invalid diff format: Line must start with space, '+' or '-': {line}");
 
             // 공백/+/- 다음의 공백 한 칸은 제거해서 저장

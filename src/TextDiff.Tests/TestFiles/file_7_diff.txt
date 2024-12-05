@@ -1,33 +1,51 @@
-using System;
-using System.Collections.Generic;
+--- file_7.txt
++++ file_7_changed.txt
+@@ -1,6 +1,7 @@
+ using System;
+ using System.Collections.Generic;
++ using System.Linq;
 
-namespace PaymentProcessing
-{
-    public class Payment
-    {
-        public void ProcessPayment(decimal amount)
-        {
-            Console.WriteLine($"Processing payment of {amount}");
-        }
+ namespace PaymentProcessing
+ {
+@@ -9,8 +10,12 @@
+     public class Payment
+     {
+         public void ProcessPayment(decimal amount)
+         {
++            if (amount <= 0)
++            {
++                throw new ArgumentException("Amount must be greater than zero.");
++            }
+             Console.WriteLine($"Processing payment of {amount}");
++            LogPayment(amount);
+         }
 
-        public bool ValidatePayment(decimal amount)
-        {
-            return amount > 0;
-        }
+...
+@@ -20,7 +25,7 @@
+         {
+             Console.WriteLine($"Payment of {amount} has been logged.");
+         }
 
-        public void LogPayment(decimal amount)
-        {
-            Console.WriteLine($"Payment of {amount} has been logged.");
-        }
+         public decimal CalculateTax(decimal amount)
+         {
+-            return amount * 0.15m;
++            var taxRate = GetTaxRate();
++            return amount * taxRate;
+         }
 
-        public decimal CalculateTax(decimal amount)
-        {
-            return amount * 0.15m;
-        }
++        private decimal GetTaxRate()
++        {
++            return 0.15m;
++        }
 
-        public void RefundPayment(decimal amount)
-        {
-            Console.WriteLine($"Refunding payment of {amount}");
-        }
-    }
-}
+...
+@@ -32,5 +41,9 @@
+             Console.WriteLine($"Refunding payment of {amount}");
+         }
+
++        public void GenerateReceipt(decimal amount)
++        {
++            Console.WriteLine($"Receipt generated for payment of {amount}");
++        }
+     }
+ }

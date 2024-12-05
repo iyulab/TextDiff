@@ -143,4 +143,20 @@ public class FileTests
         var result = _differ.Process(sourceContent, diffContent);
         AssertWithOutput(sourceContent, diffContent, expectedContent, result, 1, 4, 0);
     }
+
+    [Fact]
+    public void TestFile7_MultiParts()
+    {
+        // Arrange
+        var sourceFile = Path.Combine(TestFilesPath, "file_7.txt");
+        var diffFile = Path.Combine(TestFilesPath, "file_7_diff.txt");
+        var expectedFile = Path.Combine(TestFilesPath, "file_7_changed.txt");
+        var sourceContent = File.ReadAllText(sourceFile);
+        var diffContent = File.ReadAllText(diffFile);
+        var expectedContent = File.ReadAllText(expectedFile);
+
+        // Act
+        var result = _differ.Process(sourceContent, diffContent);
+        AssertWithOutput(sourceContent, diffContent, expectedContent, result, 1, 4, 0);
+    }
 }

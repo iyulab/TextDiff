@@ -118,4 +118,47 @@ public static class TextUtils
         return Math.Max(0, newIndent - baseIndent);
     }
 
+    public static bool LinesMatchProgressive(string line1, string line2)
+    {
+        // 삭제/추가 라인에 대해서는 기존의 유연한 매칭 유지
+        return HasTextSimilarity(line1, line2);
+    }
+
+    public static bool HasAnySimilarity(string line1, string line2)
+    {
+        // 1. 정확히 일치
+        if (line1 == line2)
+            return true;
+
+        // 2. 앞쪽 공백 제거 후 일치
+        if (line1.TrimStart() == line2.TrimStart())
+            return true;
+
+        // 3. 모든 공백 제거 후 일치
+        if (line1.Trim() == line2.Trim())
+            return true;
+
+        // 모든 비교에서 실패하면 false
+        return false;
+    }
+
+    public static bool HasTextSimilarity(string line1, string line2)
+    {
+        if (string.IsNullOrWhiteSpace(line1) && string.IsNullOrWhiteSpace(line2))
+            return true;
+
+        // 1. 정확히 일치
+        if (line1 == line2)
+            return true;
+
+        // 2. 앞쪽 공백만 다른 경우
+        if (line1.TrimStart() == line2.TrimStart())
+            return true;
+
+        // 3. 모든 공백이 다른 경우
+        if (line1.Trim() == line2.Trim())
+            return true;
+
+        return false;
+    }
 }
