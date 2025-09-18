@@ -1,4 +1,5 @@
 ﻿using TextDiff.Models;
+using TextDiff.Exceptions;
 
 namespace TextDiff.Core;
 

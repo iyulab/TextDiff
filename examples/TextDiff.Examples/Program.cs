@@ -55,7 +55,7 @@ class Program
             var input = Console.ReadLine();
             if (input == "0") break;
 
-            if (examples.ContainsKey(input))
+            if (!string.IsNullOrEmpty(input) && examples.ContainsKey(input))
             {
                 Console.WriteLine();
                 try

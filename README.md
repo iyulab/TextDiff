@@ -138,3 +138,55 @@ TextDiff.Sharp processes diffs line by line, matching context lines and applying
 - **Addition Lines**: Lines that start with a plus `'+'` represent new lines to be inserted into the original document.
 
 The library ensures that the diff is applied accurately, even in cases where the diff contains complex changes, special characters, or whitespace variations.
+
+## Working with DiffPlex
+
+TextDiff.Sharp can be combined with [DiffPlex](https://github.com/mmanela/diffplex) to create a complete diff generation and application workflow:
+
+```csharp
+using DiffPlex;
+using DiffPlex.DiffBuilder;
+using DiffPlex.DiffBuilder.Model;
+using TextDiff;
+
+// Generate unified diff using DiffPlex
+var diffBuilder = new InlineDiffBuilder(new Differ());
+var diffResult = diffBuilder.BuildDiffModel(oldText, newText);
+
+// Convert DiffPlex result to unified diff format
+var unifiedDiff = ConvertToUnifiedDiff(diffResult);
+
+// Apply the diff using TextDiff.Sharp
+var textDiffer = new TextDiffer();
+var result = textDiffer.Process(oldText, unifiedDiff);
+string patchedText = result.Text;
+
+// Helper method to convert DiffPlex output to unified diff
+static string ConvertToUnifiedDiff(DiffPaneModel diffModel)
+{
+    var lines = new List<string>();
+
+    foreach (var line in diffModel.Lines)
+    {
+        switch (line.Type)
+        {
+            case ChangeType.Unchanged:
+                lines.Add($" {line.Text}");
+                break;
+            case ChangeType.Deleted:
+                lines.Add($"-{line.Text}");
+                break;
+            case ChangeType.Inserted:
+                lines.Add($"+{line.Text}");
+                break;
+        }
+    }
+
+    return string.Join(Environment.NewLine, lines);
+}
+```
+
+This combination allows you to:
+- Use DiffPlex for generating diffs between documents
+- Use TextDiff.Sharp for applying those diffs to target documents
+- Build automated code review, patching, and synchronization systems
