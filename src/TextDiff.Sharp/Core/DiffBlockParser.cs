@@ -1,4 +1,6 @@
-﻿namespace TextDiff.Core;
+﻿using TextDiff.Exceptions;
+
+namespace TextDiff.Core;
 
 public class DiffBlockParser : IDiffBlockParser
 {
@@ -12,7 +14,8 @@ public class DiffBlockParser : IDiffBlockParser
             var line = diffLines[i];
 
             // Skip file headers
-            if (line.StartsWith("---") || line.StartsWith("+++"))
+            if (line.StartsWith("---") || line.StartsWith("+++") ||
+                line.StartsWith("diff ") || line.StartsWith("index "))
                 continue;
 
             // Skip comment
@@ -57,7 +60,7 @@ public class DiffBlockParser : IDiffBlockParser
 
             // Check for invalid format
             if (!DiffLineHelper.IsValidDiffLine(line[0]))
-                throw new FormatException($"Invalid diff format: Line must start with space, '+' or '-': {line}");
+                throw new InvalidDiffFormatException($"Invalid diff format: Line must start with space, '+' or '-': {line}");
 
             // 공백/+/- 다음의 공백 한 칸은 제거해서 저장
             string content = DiffLineHelper.ExtractContent(line);

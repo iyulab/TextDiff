@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TextDiff.Tests", "TextDiff.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TextDiff.Sharp", "TextDiff.Sharp\TextDiff.Sharp.csproj", "{F8CF0F30-E242-434E-B4FB-51ECFDCF6704}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TextDiff.Sharp.Benchmarks", "TextDiff.Sharp.Benchmarks\TextDiff.Sharp.Benchmarks.csproj", "{B8CF0F30-E242-434E-B4FB-51ECFDCF6705}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EBE023E2-6D54-4325-99C1-DA5E2CBAF0D8}"
 	ProjectSection(SolutionItems) = preProject
 		DEV.txt = DEV.txt
@@ -27,6 +29,10 @@ Global
 		{F8CF0F30-E242-434E-B4FB-51ECFDCF6704}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F8CF0F30-E242-434E-B4FB-51ECFDCF6704}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F8CF0F30-E242-434E-B4FB-51ECFDCF6704}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8CF0F30-E242-434E-B4FB-51ECFDCF6705}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8CF0F30-E242-434E-B4FB-51ECFDCF6705}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8CF0F30-E242-434E-B4FB-51ECFDCF6705}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8CF0F30-E242-434E-B4FB-51ECFDCF6705}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

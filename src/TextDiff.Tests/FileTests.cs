@@ -39,7 +39,7 @@ public class FileTests
         if (!TextComparisonHelper.AreTextsEqual(expected, result.Text))
         {
             var difference = TextComparisonHelper.GetDifference(expected, result.Text);
-            Assert.True(false, difference);
+            Assert.Fail(difference);
         }
 
         Assert.Equal(changed, result.Changes.ChangedLines);   

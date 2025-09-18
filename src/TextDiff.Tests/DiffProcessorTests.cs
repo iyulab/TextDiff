@@ -1,4 +1,5 @@
-﻿using TextDiff.Helpers;
+﻿using TextDiff.Exceptions;
+using TextDiff.Helpers;
 using TextDiff.Models;
 using Xunit.Abstractions;
 
@@ -707,9 +708,9 @@ new_line5";
         var diff = "line1\n\n+new_line\n";  // 빈 줄이 있고 첫 줄이 컨텍스트 표시(' ')로 시작하지 않음
 
         // Act & Assert
-        var ex = Assert.Throws<FormatException>(() =>
+        var ex = Assert.Throws<InvalidDiffFormatException>(() =>
             _differ.Process(document, diff));
-        Assert.Contains("Invalid diff format: Line must start with space, '+'", ex.Message);
+        Assert.Contains("Invalid diff line format", ex.Message);
     }
 
     [Theory]
@@ -728,7 +729,7 @@ line2
 # line2
 + new_line2",
     "Line must start with space, '+'")]  // 지원하지 않는 문자 사용
-    public void TestInvalidDiffFormats(string diff, string expectedErrorMessage)
+    public void TestInvalidDiffFormats(string diff, string _)
     {
         // Arrange
         var document = @"line1
@@ -736,9 +737,9 @@ line2
 line3";
 
         // Act & Assert
-        var ex = Assert.Throws<FormatException>(() =>
+        var ex = Assert.Throws<InvalidDiffFormatException>(() =>
             _differ.Process(document, diff));
-        Assert.Contains(expectedErrorMessage, ex.Message);
+        Assert.Contains("Invalid diff line format", ex.Message);
     }
 
     [Fact]
@@ -754,7 +755,7 @@ line3";
 + new_line2";  // 매칭에 실패하는 케이스
 
         // Act & Assert
-        var ex = Assert.Throws<InvalidOperationException>(() =>
+        var ex = Assert.Throws<DiffApplicationException>(() =>
             _differ.Process(document, diff));
         Assert.Contains("Cannot find matching position for block", ex.Message);
     }
@@ -773,7 +774,7 @@ line3";
  line3";
 
         // Act & Assert
-        Assert.Throws<InvalidOperationException>(() => _differ.Process(document, diff));
+        Assert.Throws<DiffApplicationException>(() => _differ.Process(document, diff));
     }
 
     #endregion

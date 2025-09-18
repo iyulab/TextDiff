@@ -1,16 +1,80 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	<LangVersion>Preview</LangVersion>
-	<TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <!-- Build Configuration -->
+    <LangVersion>Preview</LangVersion>
+    <TargetFrameworks>netstandard2.1;net8.0;net9.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-	<RootNamespace>TextDiff</RootNamespace>
+    <RootNamespace>TextDiff</RootNamespace>
+    <AssemblyName>TextDiff.Sharp</AssemblyName>
+
+    <!-- Package Information -->
+    <PackageId>TextDiff.Sharp</PackageId>
+    
+    <!-- Package Metadata -->
+    <Title>TextDiff.Sharp</Title>
+    <Authors>TextDiff.Sharp Contributors</Authors>
+    <Company>TextDiff.Sharp</Company>
+    <Product>TextDiff.Sharp</Product>
+    <Description>A production-ready C# library for processing unified diff files and applying changes to text documents. Supports synchronous, asynchronous, streaming, and memory-optimized processing with comprehensive error handling and progress reporting.</Description>
+    <Summary>Production-ready unified diff processing library for .NET with multiple API variants and comprehensive error handling.</Summary>
+    <PackageDescription>$(Description)</PackageDescription>
+
+    <!-- Package URLs and Links -->
+    <PackageProjectUrl>https://github.com/yourusername/TextDiff.Sharp</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/yourusername/TextDiff.Sharp</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+
+    <!-- Package Tags and Classification -->
+    <PackageTags>diff;patch;unified-diff;text-processing;version-control;git;source-control;file-diff;document-processing;csharp;dotnet;async;streaming;performance</PackageTags>
+    
+    <!-- Build and Quality Configuration -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+
+    <!-- Code Quality -->
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+    <WarningsNotAsErrors />
+    <NoWarn>1591</NoWarn> <!-- Missing XML documentation warnings -->
+
+    <!-- Deterministic Build -->
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+
+    <!-- NuGet Package Validation -->
+    <EnablePackageValidation>true</EnablePackageValidation>
+    <PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
+    <!-- Disable API compatibility validation for major version upgrade -->
+    <EnableApiCompat>false</EnableApiCompat>
   </PropertyGroup>
 
-	<ItemGroup>
-		<None Include="../logo.png" Pack="true" PackagePath="" />
-		<None Include="../../README.md" Pack="true" PackagePath="" />
-	</ItemGroup>
+  <!-- Package Content -->
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="\" />
+    <None Include="../../LICENSE" Pack="true" PackagePath="\" />
+    <None Include="../../docs/articles/getting-started.md" Pack="true" PackagePath="docs\" />
+    <None Include="../../docs/articles/examples.md" Pack="true" PackagePath="docs\" />
+    <None Include="../../CHANGELOG.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <!-- Source Link -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+  </ItemGroup>
+
+  <!-- Analyzers -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0" PrivateAssets="all" />
+  </ItemGroup>
 
 </Project>

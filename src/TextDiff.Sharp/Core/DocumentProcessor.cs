@@ -106,11 +106,7 @@ public class DocumentProcessor
 
         CopyRemainingLines();
 
-        return new ProcessResult
-        {
-            Text = _resultBuffer.ToString(),
-            Changes = _changes
-        };
+        return new ProcessResult(_resultBuffer.ToString(), _changes);
     }
 
     private void CopyLinesUntilPosition(int position)
