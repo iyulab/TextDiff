@@ -63,7 +63,6 @@
     <None Include="../../LICENSE" Pack="true" PackagePath="\" />
     <None Include="../../docs/articles/getting-started.md" Pack="true" PackagePath="docs\" />
     <None Include="../../docs/articles/examples.md" Pack="true" PackagePath="docs\" />
-    <None Include="../../CHANGELOG.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <!-- Source Link -->
