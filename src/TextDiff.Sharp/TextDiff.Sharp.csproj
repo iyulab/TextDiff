@@ -50,9 +50,8 @@
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
 
-    <!-- NuGet Package Validation -->
-    <EnablePackageValidation>true</EnablePackageValidation>
-    <PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
+    <!-- NuGet Package Validation - Temporarily disabled for major restructure -->
+    <EnablePackageValidation>false</EnablePackageValidation>
     <!-- Disable API compatibility validation for major version upgrade -->
     <EnableApiCompat>false</EnableApiCompat>
   </PropertyGroup>
