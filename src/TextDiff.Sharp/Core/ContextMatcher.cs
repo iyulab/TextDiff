@@ -42,7 +42,8 @@ public class ContextMatcher : IContextMatcher
         bool isProgressiveBlock = IsProgressiveBlock(block);
 
         // Try matching at each possible position
-        for (int i = startPosition; i < documentLines.Length - block.BeforeContext.Count; i++)
+        // Use <= to allow matching when context spans to end of document
+        for (int i = startPosition; i <= documentLines.Length - block.BeforeContext.Count; i++)
         {
             if (block.Removals.Any() && !ValidateRemovalPosition(documentLines, i, block))
                 continue;
@@ -167,11 +168,18 @@ public class ContextMatcher : IContextMatcher
         }
 
         int afterStart = position + block.BeforeContext.Count + block.Removals.Count;
-        if (afterStart < documentLines.Length)
+
+        // If block has AfterContext, validate that there are lines after this position
+        if (block.AfterContext.Any())
         {
-            var afterLines = GetNextLines(documentLines, afterStart, 2);
-            if (block.AfterContext.Any())
+            if (afterStart >= documentLines.Length)
             {
+                // Block expects content after, but we're at the end of document - heavily penalize
+                score *= 0.1;
+            }
+            else
+            {
+                var afterLines = GetNextLines(documentLines, afterStart, 2);
                 score *= CalculateAfterContextSimilarity(afterLines, block.AfterContext);
             }
         }

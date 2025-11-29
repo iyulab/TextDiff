@@ -22,6 +22,11 @@ public class DiffBlockParser : IDiffBlockParser
             if (line.Equals("..."))
                 continue;
 
+            // Skip "No newline at end of file" marker
+            // This appears as: \ No newline at end of file
+            if (line.StartsWith("\\"))
+                continue;
+
             // Start new block on hunk header
             if (line.StartsWith("@@"))
             {
@@ -113,6 +118,9 @@ public class DiffBlockParser : IDiffBlockParser
             var line = lines[i];
             if (string.IsNullOrEmpty(line)) continue;
             if (line.StartsWith("---") || line.StartsWith("+++") || line.StartsWith("@@"))
+                continue;
+            // Skip "No newline at end of file" marker
+            if (line.StartsWith("\\"))
                 continue;
 
             if (line.Length > 0 && (line[0] == '-' || line[0] == '+'))
