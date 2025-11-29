@@ -1,4 +1,5 @@
 ﻿using TextDiff.Core;
+using TextDiff.DiffX;
 using TextDiff.Exceptions;
 using TextDiff.Models;
 
@@ -311,4 +312,139 @@ public class TextDiffer
             throw new TextDiffException($"Unexpected error during diff processing: {ex.Message}", ex);
         }
     }
+
+    #region DiffX Support
+
+    /// <summary>
+    /// Processes a diff that may be in either DiffX or unified diff format.
+    /// Automatically detects the format and extracts applicable diff content.
+    /// </summary>
+    /// <param name="document">The original document content.</param>
+    /// <param name="diffOrDiffX">The diff content in either DiffX or unified diff format.</param>
+    /// <param name="filePath">
+    /// Optional file path to filter DiffX entries. When specified, only the matching
+    /// file's diff will be applied. When null, the first diff entry is used.
+    /// </param>
+    /// <returns>A ProcessResult containing the updated document and change statistics.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when document or diff is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when diff is empty or no applicable diff found.</exception>
+    /// <exception cref="InvalidDiffFormatException">Thrown when the diff format is invalid.</exception>
+    /// <exception cref="DiffApplicationException">Thrown when the diff cannot be applied.</exception>
+    /// <remarks>
+    /// This method provides transparent DiffX support while maintaining backward compatibility.
+    /// For standard unified diff input, it delegates directly to <see cref="Process"/>.
+    /// For DiffX input, it extracts the relevant diff section before processing.
+    /// </remarks>
+    /// <example>
+    /// <code>
+    /// var differ = new TextDiffer();
+    ///
+    /// // Works with both formats
+    /// var result1 = differ.ProcessDiffX(document, unifiedDiff);
+    /// var result2 = differ.ProcessDiffX(document, diffXContent);
+    ///
+    /// // Target specific file in multi-file DiffX
+    /// var result3 = differ.ProcessDiffX(document, diffXContent, "/src/main.py");
+    /// </code>
+    /// </example>
+    public ProcessResult ProcessDiffX(string document, string diffOrDiffX, string? filePath = null)
+    {
+        if (document is null) throw new ArgumentNullException(nameof(document));
+        if (diffOrDiffX is null) throw new ArgumentNullException(nameof(diffOrDiffX));
+        if (string.IsNullOrWhiteSpace(diffOrDiffX))
+            throw new ArgumentException("Diff cannot be empty or contain only whitespace.", nameof(diffOrDiffX));
+
+        var reader = new DiffXReader();
+
+        // If not DiffX, fallback to standard processing
+        if (!reader.IsDiffX(diffOrDiffX))
+        {
+            return Process(document, diffOrDiffX);
+        }
+
+        // Extract diff entries from DiffX
+        var entries = reader.ExtractFileDiffs(diffOrDiffX).ToList();
+
+        if (entries.Count == 0)
+        {
+            throw new DiffApplicationException("No applicable diff found in DiffX content.");
+        }
+
+        // Find target entry
+        DiffXFileEntry? targetEntry;
+
+        if (filePath != null)
+        {
+            targetEntry = entries.FirstOrDefault(e =>
+                e.Path != null && e.Path.Equals(filePath, StringComparison.OrdinalIgnoreCase));
+
+            if (targetEntry == null)
+            {
+                throw new DiffApplicationException(
+                    $"No diff found for file '{filePath}'. " +
+                    $"Available files: {string.Join(", ", entries.Where(e => e.Path != null).Select(e => e.Path))}");
+            }
+        }
+        else
+        {
+            targetEntry = entries[0];
+        }
+
+        // Skip binary diffs
+        if (targetEntry.IsBinary)
+        {
+            throw new DiffApplicationException(
+                $"Cannot process binary diff for '{targetEntry.Path}'. " +
+                "Binary diff support requires specialized handling.");
+        }
+
+        return Process(document, targetEntry.DiffContent);
+    }
+
+    /// <summary>
+    /// Extracts all file diff entries from DiffX content without applying them.
+    /// </summary>
+    /// <param name="diffXContent">The DiffX format content.</param>
+    /// <returns>An enumerable of <see cref="DiffXFileEntry"/> objects.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when content is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when content is not in DiffX format.</exception>
+    /// <remarks>
+    /// Use this method when you need to inspect DiffX content before applying,
+    /// or when processing multiple files from a single DiffX.
+    /// </remarks>
+    /// <example>
+    /// <code>
+    /// var differ = new TextDiffer();
+    /// var entries = differ.ExtractDiffXEntries(diffXContent);
+    ///
+    /// foreach (var entry in entries)
+    /// {
+    ///     var document = LoadDocument(entry.Path);
+    ///     var result = differ.Process(document, entry.DiffContent);
+    ///     SaveDocument(entry.Path, result.Text);
+    /// }
+    /// </code>
+    /// </example>
+    public IEnumerable<DiffXFileEntry> ExtractDiffXEntries(string diffXContent)
+    {
+        var reader = new DiffXReader();
+        return reader.ExtractFileDiffs(diffXContent);
+    }
+
+    /// <summary>
+    /// Determines whether the content is in DiffX format.
+    /// </summary>
+    /// <param name="content">The content to check.</param>
+    /// <returns><c>true</c> if the content is in DiffX format; otherwise, <c>false</c>.</returns>
+    /// <remarks>
+    /// This is a quick check that only examines the first line of the content.
+    /// Use this to determine which processing method to call.
+    /// </remarks>
+    public static bool IsDiffX(string content)
+    {
+        var reader = new DiffXReader();
+        return reader.IsDiffX(content);
+    }
+
+    #endregion
 }

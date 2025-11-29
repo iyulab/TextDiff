@@ -10,13 +10,14 @@ A production-ready C# library for processing unified diff files and applying cha
 ## Features
 
 - **🔄 Multiple Processing APIs**: Synchronous, asynchronous, streaming, and memory-optimized processing
+- **📦 DiffX Format Support**: Native support for the extensible DiffX format with multi-file and metadata handling
 - **⚡ High Performance**: Memory-efficient algorithms optimized for large files with 2-5x performance improvements
 - **🛡️ Comprehensive Error Handling**: Specific exception types with detailed error information and line numbers
 - **📊 Progress Reporting**: Real-time progress updates for long-running operations with cancellation support
 - **🔧 Extensible Design**: Dependency injection support for custom parsing, matching, and tracking logic
 - **🌐 Cross-Platform**: Supports .NET 8.0, .NET 9.0, and .NET 10.0
 - **📚 Complete Documentation**: Comprehensive XML documentation, examples, and guides
-- **✅ Production Ready**: 100% test coverage with comprehensive validation and monitoring support
+- **✅ Production Ready**: 190+ tests with comprehensive validation and monitoring support
 
 ## Installation
 
@@ -190,3 +191,78 @@ This combination allows you to:
 - Use DiffPlex for generating diffs between documents
 - Use TextDiff.Sharp for applying those diffs to target documents
 - Build automated code review, patching, and synchronization systems
+
+## DiffX Format Support
+
+TextDiff.Sharp supports the [DiffX](https://diffx.org/) extensible diff format, which provides structured multi-file diffs with metadata:
+
+```csharp
+using TextDiff;
+
+// DiffX content with structured sections
+var diffX = @"#diffx: encoding=utf-8, version=1.0
+#.change:
+#..file:
+#...meta: format=json, length=30
+{""path"": ""/src/main.py""}
+#...diff:
+ def hello():
+-    print('Hello')
++    print('Hello, World!')";
+
+var differ = new TextDiffer();
+
+// Auto-detect format (works with both DiffX and unified diff)
+var result = differ.ProcessDiffX(document, diffX);
+
+// Or specify target file in multi-file DiffX
+var result = differ.ProcessDiffX(document, diffX, "/src/main.py");
+
+// Extract all file entries for batch processing
+var entries = differ.ExtractDiffXEntries(diffX);
+foreach (var entry in entries)
+{
+    var doc = LoadDocument(entry.Path);
+    var result = differ.Process(doc, entry.DiffContent);
+    SaveDocument(entry.Path, result.Text);
+}
+
+// Check format before processing
+if (TextDiffer.IsDiffX(content))
+{
+    // Handle as DiffX
+}
+```
+
+### DiffX Features
+
+- **Auto-detection**: `ProcessDiffX()` automatically detects format and falls back to standard unified diff
+- **Multi-file support**: Extract and process multiple file changes from a single DiffX
+- **Metadata extraction**: Access file paths, operations (create/modify/delete), and encoding
+- **Backward compatible**: Existing `Process()` method continues to work with unified diff
+
+## API Reference
+
+### Processing Methods
+
+| Method | Description |
+|--------|-------------|
+| `Process()` | Standard synchronous processing for unified diff |
+| `ProcessAsync()` | Async processing with cancellation and progress |
+| `ProcessStreamsAsync()` | Streaming for very large files |
+| `ProcessOptimized()` | Memory-optimized synchronous processing |
+| `ProcessDiffX()` | Auto-detect DiffX or unified diff format |
+
+### Change Statistics
+
+```csharp
+var result = differ.Process(document, diff);
+
+Console.WriteLine($"Added: {result.Changes.AddedLines}");
+Console.WriteLine($"Deleted: {result.Changes.DeletedLines}");
+Console.WriteLine($"Changed: {result.Changes.ChangedLines}");
+```
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
