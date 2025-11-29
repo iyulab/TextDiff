@@ -2,7 +2,7 @@
 
 [![NuGet Version](https://img.shields.io/nuget/v/TextDiff.Sharp.svg)](https://www.nuget.org/packages/TextDiff.Sharp/)
 [![NuGet Downloads](https://img.shields.io/nuget/dt/TextDiff.Sharp.svg)](https://www.nuget.org/packages/TextDiff.Sharp/)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/yourusername/TextDiff.Sharp/ci.yml?branch=main)](https://github.com/iyulab/TextDiff.Sharp/actions)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/iyulab/TextDiff.Sharp/ci.yml?branch=main)](https://github.com/iyulab/TextDiff.Sharp/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A production-ready C# library for processing unified diff files and applying changes to text documents. TextDiff.Sharp provides multiple API variants optimized for different scenarios, from simple synchronous processing to high-performance streaming for large files.
