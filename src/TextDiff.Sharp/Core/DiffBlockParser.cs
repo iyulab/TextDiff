@@ -34,7 +34,7 @@ public class DiffBlockParser : IDiffBlockParser
                 continue;
             }
 
-            // 비어있는 라인도 컨텍스트로 처리
+            // Treat empty lines as context
             if (string.IsNullOrEmpty(line))
             {
                 if (!isInChanges)
@@ -62,7 +62,7 @@ public class DiffBlockParser : IDiffBlockParser
             if (!DiffLineHelper.IsValidDiffLine(line[0]))
                 throw new InvalidDiffFormatException($"Invalid diff format: Line must start with space, '+' or '-': {line}");
 
-            // 공백/+/- 다음의 공백 한 칸은 제거해서 저장
+            // Extract content after the prefix character (space/+/-)
             string content = DiffLineHelper.ExtractContent(line);
 
             switch (line[0])

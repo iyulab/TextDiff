@@ -1,10 +1,16 @@
-﻿namespace TextDiff.Core;
+using TextDiff.Models;
 
+namespace TextDiff.Core;
+
+/// <summary>
+/// Default implementation of change tracking for diff processing.
+/// </summary>
 public class ChangeTracker : IChangeTracker
 {
+    /// <inheritdoc />
     public void TrackChanges(DiffBlock block, ChangeStats stats)
     {
-        // 추가/삭제된 모든 라인을 카운트 (빈 줄 포함)
+        // Count all added/removed lines (including empty lines)
         var minCount = Math.Min(block.Removals.Count, block.Additions.Count);
         stats.ChangedLines += minCount;
         stats.AddedLines += block.Additions.Count - minCount;

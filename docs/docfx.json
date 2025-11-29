@@ -76,7 +76,7 @@
       "_enableSearch": true,
       "_disableContribution": false,
       "_gitContribute": {
-        "repo": "https://github.com/yourusername/TextDiff.Sharp",
+        "repo": "https://github.com/iyulab/TextDiff.Sharp",
         "branch": "main"
       }
     }

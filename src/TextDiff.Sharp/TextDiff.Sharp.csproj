@@ -3,7 +3,7 @@
   <PropertyGroup>
     <!-- Build Configuration -->
     <LangVersion>Preview</LangVersion>
-    <TargetFrameworks>netstandard2.1;net8.0;net9.0</TargetFrameworks>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>TextDiff</RootNamespace>
@@ -22,8 +22,8 @@
     <PackageDescription>$(Description)</PackageDescription>
 
     <!-- Package URLs and Links -->
-    <PackageProjectUrl>https://github.com/yourusername/TextDiff.Sharp</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/yourusername/TextDiff.Sharp</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/iyulab/TextDiff.Sharp</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/iyulab/TextDiff.Sharp</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

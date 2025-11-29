@@ -1,4 +1,4 @@
-﻿namespace TextDiff.Models;
+namespace TextDiff.Models;
 
 /// <summary>
 /// Represents statistics about changes applied during diff processing.
@@ -18,18 +18,13 @@
 /// </remarks>
 /// <example>
 /// <code>
-/// var stats = new ChangeStats
-/// {
-///     ChangedLines = 5,
-///     AddedLines = 12,
-///     DeletedLines = 3
-/// };
-///
+/// var stats = new ChangeStats();
+/// // Stats are accumulated during processing
 /// Console.WriteLine($"Total modifications: {stats.ChangedLines + stats.AddedLines + stats.DeletedLines} lines");
 /// Console.WriteLine($"Net line change: {stats.AddedLines - stats.DeletedLines}");
 /// </code>
 /// </example>
-public class ChangeStats
+public sealed class ChangeStats
 {
     /// <summary>
     /// Gets or sets the number of lines that were modified (changed content).
@@ -64,4 +59,18 @@ public class ChangeStats
     /// line count of the document.
     /// </remarks>
     public int DeletedLines { get; set; }
+
+    /// <summary>
+    /// Gets the total number of affected lines (changed + added + deleted).
+    /// </summary>
+    public int TotalAffectedLines => ChangedLines + AddedLines + DeletedLines;
+
+    /// <summary>
+    /// Gets the net line change (added - deleted).
+    /// </summary>
+    /// <remarks>
+    /// A positive value indicates the document grew in size.
+    /// A negative value indicates the document shrank in size.
+    /// </remarks>
+    public int NetLineChange => AddedLines - DeletedLines;
 }

@@ -136,6 +136,9 @@ public class TextDiffer
 
         try
         {
+            // Reset context matcher state for thread safety
+            _contextMatcher.Reset();
+
             var documentLines = TextUtils.SplitLines(document);
             var diffLines = TextUtils.SplitLines(diff);
 

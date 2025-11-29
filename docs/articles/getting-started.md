@@ -23,7 +23,7 @@ dotnet add package TextDiff.Sharp
 If building from source:
 
 ```bash
-git clone https://github.com/yourusername/TextDiff.Sharp.git
+git clone https://github.com/iyulab/TextDiff.Sharp.git
 cd TextDiff.Sharp
 dotnet build
 ```

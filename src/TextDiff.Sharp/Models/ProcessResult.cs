@@ -54,8 +54,11 @@ public class ProcessResult
     ///
     /// The text is guaranteed to be non-null and represents a valid document
     /// that can be written to a file or used for further processing.
+    ///
+    /// Note: For streaming operations, this may be empty as the result is written
+    /// directly to the output stream.
     /// </remarks>
-    public string Text { get; private set; }
+    public string Text { get; }
 
     /// <summary>
     /// Gets the comprehensive statistics about changes applied during processing.
@@ -74,7 +77,7 @@ public class ProcessResult
     /// - Performance analysis and optimization
     /// - User feedback about processing results
     /// </remarks>
-    public ChangeStats Changes { get; private set; }
+    public ChangeStats Changes { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessResult"/> class.

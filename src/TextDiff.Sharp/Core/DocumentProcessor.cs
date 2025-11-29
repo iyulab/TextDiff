@@ -1,15 +1,17 @@
-﻿/*
-의도:
-1. 들여쓰기 처리 규칙
-   - 변경(changed)되는 라인: 원본 라인의 들여쓰기 유지
-   - 새로 추가(added)되는 라인: diff의 들여쓰기 사용
+using TextDiff.Core;
+using TextDiff.Helpers;
+using TextDiff.Models;
 
-유의사항:
-1. 라인 변경/추가 여부를 정확히 판단해야 함
-2. 원본 라인의 들여쓰기를 정확히 추출하고 보존해야 함
-3. diff의 들여쓰기도 정확히 보존해야 함
-*/
+namespace TextDiff.Core;
 
+/// <summary>
+/// Processes diff blocks and applies them to the original document.
+/// </summary>
+/// <remarks>
+/// Indentation handling rules:
+/// - Changed lines: Preserve original line's indentation
+/// - Added lines: Use diff's indentation as-is
+/// </remarks>
 public class DocumentProcessor
 {
     private readonly string[] _documentLines;
@@ -47,7 +49,7 @@ public class DocumentProcessor
 
         CopyLinesUntilPosition(blockPosition);
 
-        // 컨텍스트 라인 복사
+        // Copy before context lines
         foreach (var line in block.BeforeContext)
         {
             if (_currentPosition < _documentLines.Length)
@@ -57,34 +59,34 @@ public class DocumentProcessor
             _currentPosition++;
         }
 
-        // 변경되는 라인 처리
+        // Process changed lines
         int removalIndex = 0;
         int minCount = Math.Min(block.Removals.Count, block.Additions.Count);
 
-        // 1. Changed lines (removal과 addition이 모두 있는 경우)
+        // 1. Changed lines (paired removal and addition)
         for (int i = 0; i < minCount; i++)
         {
             var originalLine = _documentLines[_currentPosition + i];
             var addedLine = block.Additions[i];
 
-            // 원본 라인의 들여쓰기 추출 및 적용
+            // Extract and apply original line's indentation
             string indentation = TextUtils.ExtractIndentation(originalLine);
-            string newContent = TextUtils.RemoveIndentation(addedLine); // 추가된 내용의 들여쓰기 제거
+            string newContent = TextUtils.RemoveIndentation(addedLine); // Remove added content's indentation
             _resultBuffer.AddLine(indentation + newContent);
 
             removalIndex++;
         }
 
-        // 2. Added lines (순수하게 추가되는 라인)
+        // 2. Pure additions (new lines without corresponding removals)
         for (int i = removalIndex; i < block.Additions.Count; i++)
         {
             var addedLine = block.Additions[i];
-            _resultBuffer.AddLine(addedLine); // diff의 들여쓰기를 그대로 사용
+            _resultBuffer.AddLine(addedLine); // Use diff's indentation as-is
         }
 
         _currentPosition += block.Removals.Count;
 
-        // 후행 컨텍스트 라인 복사
+        // Copy after context lines
         foreach (var line in block.AfterContext)
         {
             if (_currentPosition < _documentLines.Length)

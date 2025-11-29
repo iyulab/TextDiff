@@ -22,6 +22,10 @@ public class StreamingDiffProcessor
     /// <summary>
     /// Process diff with streaming approach to minimize memory usage.
     /// </summary>
+    /// <remarks>
+    /// For streaming operations, the result is written directly to the output stream.
+    /// The returned ProcessResult.Text will be empty; use the output stream to access the result.
+    /// </remarks>
     public async Task<ProcessResult> ProcessStreamingAsync(
         Stream documentStream,
         Stream diffStream,
@@ -29,6 +33,9 @@ public class StreamingDiffProcessor
         CancellationToken cancellationToken = default,
         IProgress<ProcessingProgress>? progress = null)
     {
+        // Reset context matcher state for thread safety
+        _contextMatcher.Reset();
+
         var diffBlocks = await ParseDiffStreamAsync(diffStream, cancellationToken);
         var changes = new ChangeStats();
 
@@ -37,7 +44,8 @@ public class StreamingDiffProcessor
 
         await ProcessDocumentStreamAsync(documentReader, outputWriter, diffBlocks, changes, cancellationToken, progress);
 
-        return new ProcessResult(outputStream.Length.ToString(), changes);
+        // For streaming operations, text is written to output stream, not returned
+        return new ProcessResult(string.Empty, changes);
     }
 
     /// <summary>
@@ -45,6 +53,9 @@ public class StreamingDiffProcessor
     /// </summary>
     public ProcessResult ProcessWithStreaming(string document, string diff, int bufferSizeHint = DefaultBufferSize)
     {
+        // Reset context matcher state for thread safety
+        _contextMatcher.Reset();
+
         var documentLines = MemoryEfficientTextUtils.SplitLinesEfficient(document);
         var diffLines = MemoryEfficientTextUtils.SplitLinesEfficient(diff);
 
@@ -79,11 +90,7 @@ public class StreamingDiffProcessor
         var diffLines = new List<string>();
 
         string? line;
-#if NETSTANDARD2_1
-        while ((line = await reader.ReadLineAsync()) != null)
-#else
         while ((line = await reader.ReadLineAsync(cancellationToken)) != null)
-#endif
         {
             diffLines.Add(line);
         }
@@ -105,11 +112,7 @@ public class StreamingDiffProcessor
         long processedLines = 0;
 
         // Pre-read document to apply diff blocks (required for context matching)
-#if NETSTANDARD2_1
-        while ((line = await documentReader.ReadLineAsync()) != null)
-#else
         while ((line = await documentReader.ReadLineAsync(cancellationToken)) != null)
-#endif
         {
             documentLines.Add(line);
             totalLines++;

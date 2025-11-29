@@ -146,11 +146,11 @@ public static class TextUtils
     /// </remarks>
     public static bool LinesMatch(string line1, string line2)
     {
-        // 1. 양쪽 끝의 공백 제거
+        // 1. Trim whitespace from both ends
         string trimmedLine1 = line1.Trim();
         string trimmedLine2 = line2.Trim();
 
-        // 2. 연속된 공백을 단일 공백으로 치환
+        // 2. Normalize consecutive whitespace to single spaces
         trimmedLine1 = NormalizeWhitespace(trimmedLine1);
         trimmedLine2 = NormalizeWhitespace(trimmedLine2);
 
@@ -169,15 +169,15 @@ public static class TextUtils
 
     public static bool LinesMatchIgnoreIndentation(string line1, string line2)
     {
-        // 들여쓰기를 제거하고 비교
+        // Remove leading indentation and compare
         string trimmed1 = line1.TrimStart();
         string trimmed2 = line2.TrimStart();
 
-        // 양쪽 끝의 공백 제거
+        // Trim whitespace from both ends
         trimmed1 = trimmed1.Trim();
         trimmed2 = trimmed2.Trim();
 
-        // 연속된 공백을 단일 공백으로 치환
+        // Normalize consecutive whitespace to single spaces
         trimmed1 = NormalizeWhitespace(trimmed1);
         trimmed2 = NormalizeWhitespace(trimmed2);
 
@@ -189,31 +189,31 @@ public static class TextUtils
         int baseIndent = baseLine.TakeWhile(char.IsWhiteSpace).Count();
         int newIndent = newLine.TakeWhile(char.IsWhiteSpace).Count();
 
-        // 상대적 들여쓰기 계산 (최소 0 반환)
+        // Calculate relative indentation (minimum 0)
         return Math.Max(0, newIndent - baseIndent);
     }
 
     public static bool LinesMatchProgressive(string line1, string line2)
     {
-        // 삭제/추가 라인에 대해서는 기존의 유연한 매칭 유지
+        // Use flexible matching for deletion/addition lines
         return HasTextSimilarity(line1, line2);
     }
 
     public static bool HasAnySimilarity(string line1, string line2)
     {
-        // 1. 정확히 일치
+        // 1. Exact match
         if (line1 == line2)
             return true;
 
-        // 2. 앞쪽 공백 제거 후 일치
+        // 2. Match after removing leading whitespace
         if (line1.TrimStart() == line2.TrimStart())
             return true;
 
-        // 3. 모든 공백 제거 후 일치
+        // 3. Match after removing all whitespace
         if (line1.Trim() == line2.Trim())
             return true;
 
-        // 모든 비교에서 실패하면 false
+        // No match found
         return false;
     }
 
@@ -222,15 +222,15 @@ public static class TextUtils
         if (string.IsNullOrWhiteSpace(line1) && string.IsNullOrWhiteSpace(line2))
             return true;
 
-        // 1. 정확히 일치
+        // 1. Exact match
         if (line1 == line2)
             return true;
 
-        // 2. 앞쪽 공백만 다른 경우
+        // 2. Match with different leading whitespace only
         if (line1.TrimStart() == line2.TrimStart())
             return true;
 
-        // 3. 모든 공백이 다른 경우
+        // 3. Match with different whitespace
         if (line1.Trim() == line2.Trim())
             return true;
 

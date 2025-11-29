@@ -84,4 +84,16 @@ public interface IContextMatcher
     /// Thrown when <paramref name="startPosition"/> is negative or beyond the document length.
     /// </exception>
     int FindPosition(string[] documentLines, int startPosition, DiffBlock block);
+
+    /// <summary>
+    /// Resets the internal state of the context matcher.
+    /// Must be called before processing a new document to ensure thread safety.
+    /// </summary>
+    /// <remarks>
+    /// Context matchers may maintain internal state (such as last match position)
+    /// to optimize matching across multiple blocks within the same document.
+    /// This state must be reset before processing a new document to prevent
+    /// interference between concurrent operations or successive document processing.
+    /// </remarks>
+    void Reset();
 }

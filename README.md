@@ -2,7 +2,7 @@
 
 [![NuGet Version](https://img.shields.io/nuget/v/TextDiff.Sharp.svg)](https://www.nuget.org/packages/TextDiff.Sharp/)
 [![NuGet Downloads](https://img.shields.io/nuget/dt/TextDiff.Sharp.svg)](https://www.nuget.org/packages/TextDiff.Sharp/)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/yourusername/TextDiff.Sharp/ci.yml?branch=main)](https://github.com/yourusername/TextDiff.Sharp/actions)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/yourusername/TextDiff.Sharp/ci.yml?branch=main)](https://github.com/iyulab/TextDiff.Sharp/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A production-ready C# library for processing unified diff files and applying changes to text documents. TextDiff.Sharp provides multiple API variants optimized for different scenarios, from simple synchronous processing to high-performance streaming for large files.
@@ -14,7 +14,7 @@ A production-ready C# library for processing unified diff files and applying cha
 - **🛡️ Comprehensive Error Handling**: Specific exception types with detailed error information and line numbers
 - **📊 Progress Reporting**: Real-time progress updates for long-running operations with cancellation support
 - **🔧 Extensible Design**: Dependency injection support for custom parsing, matching, and tracking logic
-- **🌐 Cross-Platform**: Supports .NET Standard 2.1, .NET 8.0, and .NET 9.0
+- **🌐 Cross-Platform**: Supports .NET 8.0, .NET 9.0, and .NET 10.0
 - **📚 Complete Documentation**: Comprehensive XML documentation, examples, and guides
 - **✅ Production Ready**: 100% test coverage with comprehensive validation and monitoring support
 
