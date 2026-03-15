@@ -39,7 +39,7 @@ public class DocumentProcessor
     {
         int blockPosition = _currentPosition;
 
-        if (block.BeforeContext.Any())
+        if (block.BeforeContext.Any() || block.Removals.Any())
         {
             blockPosition = _contextMatcher.FindPosition(_documentLines, _currentPosition, block);
             if (blockPosition == -1)
