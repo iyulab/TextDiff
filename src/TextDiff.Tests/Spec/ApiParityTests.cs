@@ -68,7 +68,9 @@ public class ApiParityTests
         using var reader = new StreamReader(outputStream);
         string streamText = await reader.ReadToEndAsync();
 
-        // Stream result may have trailing newline from WriteLineAsync
+        // StreamingDiffProcessor uses WriteLineAsync which appends a trailing newline
+        // after every line including the last. This is a known behavioral difference
+        // from the in-memory Process() API. TrimEnd normalizes for comparison.
         Assert.Equal(syncResult.Text.TrimEnd('\n', '\r'), streamText.TrimEnd('\n', '\r'));
     }
 }

@@ -255,7 +255,7 @@ public class TextDiffer
             progress?.Report(new ProcessingProgress("Processing document", 50, 100));
 
             // Use streaming processor for better performance on large documents
-            var streamingProcessor = new StreamingDiffProcessor(_contextMatcher, _changeTracker);
+            var streamingProcessor = new StreamingDiffProcessor(_contextMatcher, _changeTracker, _blockParser);
             var result = await Task.Run(() => streamingProcessor.ProcessWithStreaming(document, diff), cancellationToken);
 
             progress?.Report(new ProcessingProgress("Completed", 100, 100));
@@ -293,7 +293,7 @@ public class TextDiffer
         if (diffStream is null) throw new ArgumentNullException(nameof(diffStream));
         if (outputStream is null) throw new ArgumentNullException(nameof(outputStream));
 
-        var streamingProcessor = new StreamingDiffProcessor(_contextMatcher, _changeTracker);
+        var streamingProcessor = new StreamingDiffProcessor(_contextMatcher, _changeTracker, _blockParser);
         return await streamingProcessor.ProcessStreamingAsync(
             documentStream, diffStream, outputStream, cancellationToken, progress);
     }
@@ -319,7 +319,7 @@ public class TextDiffer
             var diffLines = MemoryEfficientTextUtils.SplitLinesEfficient(diff);
             ValidateDiffFormat(diffLines);
 
-            var streamingProcessor = new StreamingDiffProcessor(_contextMatcher, _changeTracker);
+            var streamingProcessor = new StreamingDiffProcessor(_contextMatcher, _changeTracker, _blockParser);
             return streamingProcessor.ProcessWithStreaming(document, diff, bufferSizeHint);
         }
         catch (InvalidOperationException ex)

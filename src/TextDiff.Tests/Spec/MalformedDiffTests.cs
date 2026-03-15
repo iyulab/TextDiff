@@ -70,14 +70,11 @@ public class MalformedDiffTests
     }
 
     [Fact]
-    public void Process_OnlyEmptyLinesInDiff_HandlesGracefully()
+    public void Process_OnlyEmptyLinesInDiff_ThrowsArgumentException()
     {
         string document = "content";
-        var ex = Record.Exception(() => _differ.Process(document, "\n\n\n"));
-        if (ex != null)
-        {
-            Assert.True(ex is ArgumentException, $"Expected ArgumentException but got {ex.GetType().Name}");
-        }
+        // "\n\n\n" is all whitespace; Process() validates diff is not empty/whitespace first
+        Assert.Throws<ArgumentException>(() => _differ.Process(document, "\n\n\n"));
     }
 
     [Fact]

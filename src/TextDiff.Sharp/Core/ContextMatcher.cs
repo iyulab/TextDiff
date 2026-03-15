@@ -37,6 +37,11 @@ public class ContextMatcher : IContextMatcher
     /// <inheritdoc />
     public int FindPosition(string[] documentLines, int startPosition, DiffBlock block)
     {
+        ArgumentNullException.ThrowIfNull(documentLines);
+        ArgumentNullException.ThrowIfNull(block);
+        if (startPosition < 0 || startPosition > documentLines.Length)
+            throw new ArgumentOutOfRangeException(nameof(startPosition));
+
         var candidates = new List<MatchCandidate>();
         var pattern = AnalyzeContextPattern(block);
         bool isProgressiveBlock = IsProgressiveBlock(block);

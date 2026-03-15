@@ -12,12 +12,17 @@ public class StreamingDiffProcessor
 {
     private readonly IContextMatcher _contextMatcher;
     private readonly IChangeTracker _changeTracker;
+    private readonly IDiffBlockParser _blockParser;
     private const int DefaultBufferSize = 8192;
 
-    public StreamingDiffProcessor(IContextMatcher contextMatcher, IChangeTracker changeTracker)
+    public StreamingDiffProcessor(
+        IContextMatcher contextMatcher,
+        IChangeTracker changeTracker,
+        IDiffBlockParser? blockParser = null)
     {
         _contextMatcher = contextMatcher;
         _changeTracker = changeTracker;
+        _blockParser = blockParser ?? new DiffBlockParser();
     }
 
     /// <summary>
@@ -93,8 +98,7 @@ public class StreamingDiffProcessor
         var documentLines = MemoryEfficientTextUtils.SplitLinesEfficient(document);
         var diffLines = MemoryEfficientTextUtils.SplitLinesEfficient(diff);
 
-        var parser = new DiffBlockParser();
-        var blocks = parser.Parse(diffLines).ToList();
+        var blocks = _blockParser.Parse(diffLines).ToList();
 
         // Detect line separator from document (fall back to diff, then platform default)
         string? lineSeparator = TextUtils.DetectLineSeparator(document) ?? TextUtils.DetectLineSeparator(diff);
@@ -120,9 +124,6 @@ public class StreamingDiffProcessor
 
     private async Task<List<DiffBlock>> ParseDiffStreamAsync(Stream diffStream, CancellationToken cancellationToken)
     {
-        var blocks = new List<DiffBlock>();
-        var parser = new DiffBlockParser();
-
         using var reader = new StreamReader(diffStream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, DefaultBufferSize);
         var diffLines = new List<string>();
 
@@ -132,7 +133,7 @@ public class StreamingDiffProcessor
             diffLines.Add(line);
         }
 
-        return parser.Parse(diffLines.ToArray()).ToList();
+        return _blockParser.Parse(diffLines.ToArray()).ToList();
     }
 
     private async Task ProcessDocumentStreamAsync(

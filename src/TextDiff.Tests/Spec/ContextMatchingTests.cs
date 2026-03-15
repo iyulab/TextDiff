@@ -90,7 +90,7 @@ public class ContextMatchingTests
         string document = "first\nsecond\nthird";
         string diff = "-first\n+FIRST\n second";
         var result = _differ.Process(document, diff);
-        Assert.StartsWith("FIRST", result.Text);
+        Assert.Equal("FIRST\nsecond\nthird", result.Text);
     }
 
     [Fact]
@@ -99,6 +99,6 @@ public class ContextMatchingTests
         string document = "first\nsecond\nthird";
         string diff = " second\n-third\n+THIRD";
         var result = _differ.Process(document, diff);
-        Assert.EndsWith("THIRD", result.Text);
+        Assert.Equal("first\nsecond\nTHIRD", result.Text);
     }
 }

@@ -40,7 +40,7 @@ public class NoNewlineAdvancedTests
         string document = "line1\nline2";
         string diff = " line1\n-line2\n+\\server\\share\\path";
         var result = _differ.Process(document, diff);
-        Assert.Contains("\\server\\share\\path", result.Text);
+        Assert.Equal("line1\n\\server\\share\\path", result.Text);
     }
 
     [Fact]
