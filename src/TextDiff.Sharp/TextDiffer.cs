@@ -148,7 +148,13 @@ public class TextDiffer
 
             var blocks = _blockParser.Parse(diffLines).ToList();
 
-            var processor = new DocumentProcessor(documentLines, _contextMatcher, _changeTracker);
+            // Detect the line ending used in the source material so the output
+            // round-trips cleanly.  Prefer the document's own line endings; fall
+            // back to the diff's endings; finally fall back to the platform default.
+            string? lineSeparator = DetectLineSeparator(document)
+                                    ?? DetectLineSeparator(diff);
+
+            var processor = new DocumentProcessor(documentLines, _contextMatcher, _changeTracker, lineSeparator);
             return processor.ApplyBlocks(blocks);
         }
         catch (InvalidOperationException ex)
@@ -192,7 +198,26 @@ public class TextDiffer
         }
 
         if (!hasValidDiffLine)
-            throw new InvalidDiffFormatException("Diff does not contain any valid diff lines (lines starting with +, -, or space).");
+        {
+            // A diff that contains only hunk headers (e.g. @@ -0,0 +0,0 @@) is a
+            // valid no-op diff representing an empty or untouched section. Allow it.
+            bool hasHunkHeader = diffLines.Any(l => l.StartsWith("@@"));
+            if (!hasHunkHeader)
+                throw new InvalidDiffFormatException("Diff does not contain any valid diff lines (lines starting with +, -, or space).");
+        }
+    }
+
+    /// <summary>
+    /// Detects the line separator used in the given text.
+    /// Returns "\r\n" for CRLF, "\n" for LF, or null when the text is too
+    /// short to determine (single-line / empty).
+    /// </summary>
+    private static string? DetectLineSeparator(string text)
+    {
+        int idx = text.IndexOf('\n');
+        if (idx < 0)
+            return null; // no newline found – cannot determine
+        return idx > 0 && text[idx - 1] == '\r' ? "\r\n" : "\n";
     }
 
     /// <summary>

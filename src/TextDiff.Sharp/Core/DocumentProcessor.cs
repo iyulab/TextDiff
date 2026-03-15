@@ -24,12 +24,13 @@ public class DocumentProcessor
     public DocumentProcessor(
         string[] documentLines,
         IContextMatcher contextMatcher,
-        IChangeTracker changeTracker)
+        IChangeTracker changeTracker,
+        string? lineSeparator = null)
     {
         _documentLines = documentLines;
         _contextMatcher = contextMatcher;
         _changeTracker = changeTracker;
-        _resultBuffer = new LineBuffer();
+        _resultBuffer = new LineBuffer(lineSeparator);
         _changes = new ChangeStats();
         _currentPosition = 0;
     }
