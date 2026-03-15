@@ -8,6 +8,7 @@ public class DiffBlockParser : IDiffBlockParser
     {
         var currentBlock = new DiffBlock();
         var isInChanges = false;
+        var startedAfterYield = false;
 
         for (int i = 0; i < diffLines.Length; i++)
         {
@@ -36,6 +37,7 @@ public class DiffBlockParser : IDiffBlockParser
                 }
                 currentBlock = new DiffBlock();
                 isInChanges = false;
+                startedAfterYield = false;
                 continue;
             }
 
@@ -75,6 +77,12 @@ public class DiffBlockParser : IDiffBlockParser
                 case ' ':
                     if (!isInChanges)
                     {
+                        if (startedAfterYield)
+                        {
+                            // Sliding window: replace BeforeContext to avoid accumulating
+                            // non-adjacent context lines from separate hunks
+                            currentBlock.BeforeContext.Clear();
+                        }
                         currentBlock.BeforeContext.Add(content);
                     }
                     else
@@ -85,6 +93,7 @@ public class DiffBlockParser : IDiffBlockParser
                             currentBlock = new DiffBlock();
                             currentBlock.BeforeContext.Add(content);
                             isInChanges = false;
+                            startedAfterYield = true;
                         }
                         else
                         {
@@ -95,11 +104,13 @@ public class DiffBlockParser : IDiffBlockParser
 
                 case '-':
                     isInChanges = true;
+                    startedAfterYield = false;
                     currentBlock.Removals.Add(content);
                     break;
 
                 case '+':
                     isInChanges = true;
+                    startedAfterYield = false;
                     currentBlock.Additions.Add(content);
                     break;
             }
