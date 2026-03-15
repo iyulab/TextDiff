@@ -69,10 +69,17 @@ public class DocumentProcessor
             var originalLine = _documentLines[_currentPosition + i];
             var addedLine = block.Additions[i];
 
-            // Extract and apply original line's indentation
-            string indentation = TextUtils.ExtractIndentation(originalLine);
-            string newContent = TextUtils.RemoveIndentation(addedLine); // Remove added content's indentation
-            _resultBuffer.AddLine(indentation + newContent);
+            // Only preserve indentation if original line has non-whitespace content
+            if (string.IsNullOrWhiteSpace(originalLine))
+            {
+                _resultBuffer.AddLine(addedLine);
+            }
+            else
+            {
+                string indentation = TextUtils.ExtractIndentation(originalLine);
+                string newContent = TextUtils.RemoveIndentation(addedLine);
+                _resultBuffer.AddLine(indentation + newContent);
+            }
 
             removalIndex++;
         }

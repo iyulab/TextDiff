@@ -216,15 +216,22 @@ public class StreamingDiffProcessor
         int removalIndex = 0;
         int minCount = Math.Min(block.Removals.Count, block.Additions.Count);
 
-        // Changed lines (preserve original indentation)
+        // Changed lines (preserve original indentation only for non-whitespace lines)
         for (int i = 0; i < minCount; i++)
         {
             var originalLine = documentLines[currentPosition + i];
             var addedLine = block.Additions[i];
 
-            string indentation = TextUtils.ExtractIndentation(originalLine);
-            string newContent = TextUtils.RemoveIndentation(addedLine);
-            await outputWriter.WriteLineAsync(indentation + newContent);
+            if (string.IsNullOrWhiteSpace(originalLine))
+            {
+                await outputWriter.WriteLineAsync(addedLine);
+            }
+            else
+            {
+                string indentation = TextUtils.ExtractIndentation(originalLine);
+                string newContent = TextUtils.RemoveIndentation(addedLine);
+                await outputWriter.WriteLineAsync(indentation + newContent);
+            }
 
             removalIndex++;
         }
@@ -271,15 +278,22 @@ public class StreamingDiffProcessor
         int removalIndex = 0;
         int minCount = Math.Min(block.Removals.Count, block.Additions.Count);
 
-        // Changed lines
+        // Changed lines (preserve original indentation only for non-whitespace lines)
         for (int i = 0; i < minCount; i++)
         {
             var originalLine = documentLines[currentPosition + i];
             var addedLine = block.Additions[i];
 
-            string indentation = TextUtils.ExtractIndentation(originalLine);
-            string newContent = TextUtils.RemoveIndentation(addedLine);
-            buffer.AddLine(indentation + newContent);
+            if (string.IsNullOrWhiteSpace(originalLine))
+            {
+                buffer.AddLine(addedLine);
+            }
+            else
+            {
+                string indentation = TextUtils.ExtractIndentation(originalLine);
+                string newContent = TextUtils.RemoveIndentation(addedLine);
+                buffer.AddLine(indentation + newContent);
+            }
 
             removalIndex++;
         }

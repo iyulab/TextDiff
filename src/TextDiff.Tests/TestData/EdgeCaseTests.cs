@@ -124,6 +124,46 @@ public class EdgeCaseTests
         Assert.Contains("line3 ", result.Text);
     }
 
+    /// <summary>
+    /// Regression test for https://github.com/iyulab/TextDiff/issues/1
+    /// Applying a diff to a single space character should remove it.
+    /// </summary>
+    [Fact]
+    public void Process_WhitespaceOnlyLine_RemovesCorrectly()
+    {
+        // Arrange
+        var old = " ";
+        var newText = "This is just some text";
+        var diffText = "- \n+This is just some text";
+
+        var textDiffer = new TextDiffer();
+
+        // Act
+        var result = textDiffer.Process(old, diffText);
+
+        // Assert
+        Assert.Equal(newText, result.Text);
+    }
+
+    [Theory]
+    [InlineData(" ", "replacement text")]
+    [InlineData("\t", "replacement text")]
+    [InlineData("   ", "replacement text")]
+    [InlineData("\t\t", "replacement text")]
+    public void Process_VariousWhitespaceOnlyLines_ReplacedCorrectly(string whitespace, string replacement)
+    {
+        // Arrange
+        var diffText = $"-{whitespace}\n+{replacement}";
+
+        var textDiffer = new TextDiffer();
+
+        // Act
+        var result = textDiffer.Process(whitespace, diffText);
+
+        // Assert
+        Assert.Equal(replacement, result.Text);
+    }
+
     [Theory]
     [InlineData(0)]
     [InlineData(1)]
