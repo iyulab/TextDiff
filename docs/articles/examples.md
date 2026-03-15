@@ -453,8 +453,6 @@ public class DocumentVersionManager
 ```csharp
 public class BatchDiffProcessor
 {
-    private readonly TextDiffer _differ = new();
-
     public async Task ProcessBatch(IEnumerable<(string Document, string Diff)> items)
     {
         var semaphore = new SemaphoreSlim(Environment.ProcessorCount);
@@ -463,7 +461,9 @@ public class BatchDiffProcessor
             await semaphore.WaitAsync();
             try
             {
-                return await _differ.ProcessAsync(item.Document, item.Diff);
+                // Each task uses its own TextDiffer instance for thread safety
+                var differ = new TextDiffer();
+                return await differ.ProcessAsync(item.Document, item.Diff);
             }
             finally
             {

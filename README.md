@@ -2,7 +2,7 @@
 
 [![NuGet Version](https://img.shields.io/nuget/v/TextDiff.Sharp.svg)](https://www.nuget.org/packages/TextDiff.Sharp/)
 [![NuGet Downloads](https://img.shields.io/nuget/dt/TextDiff.Sharp.svg)](https://www.nuget.org/packages/TextDiff.Sharp/)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/iyulab/TextDiff.Sharp/ci.yml?branch=main)](https://github.com/iyulab/TextDiff.Sharp/actions)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/iyulab/TextDiff/ci.yml?branch=main)](https://github.com/iyulab/TextDiff/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A production-ready C# library for processing unified diff files and applying changes to text documents. TextDiff.Sharp provides multiple API variants optimized for different scenarios, from simple synchronous processing to high-performance streaming for large files.
@@ -17,7 +17,16 @@ A production-ready C# library for processing unified diff files and applying cha
 - **🔧 Extensible Design**: Dependency injection support for custom parsing, matching, and tracking logic
 - **🌐 Cross-Platform**: Supports .NET 8.0, .NET 9.0, and .NET 10.0
 - **📚 Complete Documentation**: Comprehensive XML documentation, examples, and guides
-- **✅ Production Ready**: 190+ tests with comprehensive validation and monitoring support
+- **✅ Production Ready**: 286 tests covering unified diff spec, edge cases, and API parity
+
+## What's New in v1.3.0
+
+- **Git Extended Headers**: Full support for `old mode`, `new mode`, `rename from/to`, `copy from/to`, `similarity index`, `new file mode`, `deleted file mode`
+- **Multi-file Diff Safety**: Automatically stops at the first `diff --git` boundary when applying to a single document
+- **Improved Context Matching**: Better handling of offset positions, duplicate lines, and zero-context diffs
+- **Cross-platform Line Endings**: Automatic detection and preservation of CRLF/LF line endings across all APIs
+- **API Parity**: `Process()`, `ProcessAsync()`, `ProcessOptimized()`, and `ProcessStreamsAsync()` now produce identical results
+- **LLM-generated Diff Tolerance**: Graceful handling of incorrect hunk counts, missing headers, and ellipsis comments
 
 ## Installation
 
@@ -53,10 +62,10 @@ string originalText = @"line1
 line2
 line3";
 
-// Diff to be applied
+// Diff to be applied (standard unified diff format: 1-char prefix)
 string diffText = @" line1
-- line2
-+ line2_modified
+-line2
++line2_modified
  line3";
 
 // Create a TextDiffer instance
@@ -105,8 +114,8 @@ line3
 line4";
 
     var diff = @" line1
-- line2
-+ new_line2
+-line2
++new_line2
  line3
  line4";
 
@@ -252,6 +261,18 @@ if (TextDiffer.IsDiffX(content))
 | `ProcessStreamsAsync()` | Streaming for very large files |
 | `ProcessOptimized()` | Memory-optimized synchronous processing |
 | `ProcessDiffX()` | Auto-detect DiffX or unified diff format |
+
+### Thread Safety
+
+Each processing method resets internal matcher state. For concurrent processing, use separate `TextDiffer` instances:
+
+```csharp
+// Safe: separate instances for parallel work
+await Task.WhenAll(
+    Task.Run(() => new TextDiffer().Process(doc1, diff1)),
+    Task.Run(() => new TextDiffer().Process(doc2, diff2))
+);
+```
 
 ### Change Statistics
 

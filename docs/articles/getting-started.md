@@ -23,8 +23,8 @@ dotnet add package TextDiff.Sharp
 If building from source:
 
 ```bash
-git clone https://github.com/iyulab/TextDiff.Sharp.git
-cd TextDiff.Sharp
+git clone https://github.com/iyulab/TextDiff.git
+cd TextDiff
 dotnet build
 ```
 
@@ -220,23 +220,18 @@ var result = await differ.ProcessAsync(document, diff, CancellationToken.None, p
 
 ## Framework Support
 
-TextDiff.Sharp supports multiple .NET frameworks:
+TextDiff.Sharp supports the following .NET frameworks:
 
-- **.NET Standard 2.1** - Maximum compatibility
-- **.NET 8.0** - Modern performance optimizations
-- **.NET 9.0** - Latest features and improvements
-
-Choose based on your application's requirements:
+- **.NET 8.0** - Long-term support
+- **.NET 9.0** - Standard term support
+- **.NET 10.0** - Latest features and improvements
 
 ```xml
-<!-- For maximum compatibility -->
-<TargetFramework>netstandard2.1</TargetFramework>
-
-<!-- For modern applications -->
+<!-- For LTS stability -->
 <TargetFramework>net8.0</TargetFramework>
 
 <!-- For latest features -->
-<TargetFramework>net9.0</TargetFramework>
+<TargetFramework>net10.0</TargetFramework>
 ```
 
 ## Common Patterns
