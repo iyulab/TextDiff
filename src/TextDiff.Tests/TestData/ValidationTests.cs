@@ -106,7 +106,7 @@ index 1234567..abcdefg 100644
     {
         // Arrange
         string document = "";
-        string diff = "+ first line\n+ second line";
+        string diff = "+first line\n+second line";
 
         // Act
         var result = _differ.Process(document, diff);

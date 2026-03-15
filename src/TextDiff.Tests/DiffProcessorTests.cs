@@ -56,7 +56,7 @@ line2
 line3";
 
         var diff = @" line1
-+ line1.5
++line1.5
  line2
  line3";
 
@@ -114,15 +114,15 @@ footer2";
 
         var diff = @" header1
 - line1
-+ new_line1
++new_line1
  line2
 - line3
-+ new_line3
-+ added_line3.1
++new_line3
++added_line3.1
  line4
  footer1
 - footer2
-+ footer2_modified";
++footer2_modified";
 
         var expectedResult = @"header1
 new_line1
@@ -216,9 +216,9 @@ line3";
 end";
 
         var diff = @" start
-+ middle1
-+ middle2
-+ middle3
++middle1
++middle2
++middle3
  end";
 
         var expectedResult = @"start
@@ -358,9 +358,9 @@ line3";
         // Arrange
         var document = @"";
 
-        var diff = @"+ line1
-+ line2
-+ line3";
+        var diff = @"+line1
++line2
++line3";
 
         var expectedResult = @"line1
 line2
@@ -414,11 +414,11 @@ line5";
 
         var diff = @" line1
 - line2
-+ line2_modified
++line2_modified
  line3
-+ line3.1
++line3.1
 - line4
-+ line4_modified
++line4_modified
  line5";
 
         var expectedResult = @"line1

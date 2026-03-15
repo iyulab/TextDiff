@@ -383,10 +383,10 @@ database:
         var document = @"if (condition) { doSomething(); }";
 
         var diff = @"- if (condition) { doSomething(); }
-+ if (condition)
-+ {
-+     doSomething();
-+ }";
++if (condition)
++{
++    doSomething();
++}";
 
         // Act
         var result = _differ.Process(document, diff);

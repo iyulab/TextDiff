@@ -69,17 +69,32 @@ public class DocumentProcessor
         {
             var originalLine = _documentLines[_currentPosition + i];
             var addedLine = block.Additions[i];
+            var removalLine = block.Removals[i];
 
             // Only preserve indentation if original line has non-whitespace content
+            // and the diff does not explicitly change the indentation style
             if (string.IsNullOrWhiteSpace(originalLine))
             {
                 _resultBuffer.AddLine(addedLine);
             }
             else
             {
-                string indentation = TextUtils.ExtractIndentation(originalLine);
-                string newContent = TextUtils.RemoveIndentation(addedLine);
-                _resultBuffer.AddLine(indentation + newContent);
+                string removalIndentation = TextUtils.ExtractIndentation(removalLine);
+                string additionIndentation = TextUtils.ExtractIndentation(addedLine);
+
+                // If the diff explicitly changes indentation (e.g. tab→space or space→tab),
+                // use the addition line as-is to honor the intended indentation change.
+                // Otherwise, preserve the original document's indentation.
+                if (removalIndentation != additionIndentation)
+                {
+                    _resultBuffer.AddLine(addedLine);
+                }
+                else
+                {
+                    string indentation = TextUtils.ExtractIndentation(originalLine);
+                    string newContent = TextUtils.RemoveIndentation(addedLine);
+                    _resultBuffer.AddLine(indentation + newContent);
+                }
             }
 
             removalIndex++;
