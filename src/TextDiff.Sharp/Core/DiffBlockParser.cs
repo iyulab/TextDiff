@@ -19,9 +19,20 @@ public class DiffBlockParser : IDiffBlockParser
                 line.StartsWith("diff ") || line.StartsWith("index "))
                 continue;
 
-            // Skip comment
+            // Ellipsis ("...") marks a gap in context between sections.
+            // Yield the current block if it has changes, then start fresh so that
+            // the next section is matched independently without the prior context.
             if (line.Equals("..."))
+            {
+                if (currentBlock.HasChanges())
+                {
+                    yield return currentBlock;
+                }
+                currentBlock = new DiffBlock();
+                isInChanges = false;
+                startedAfterYield = false;
                 continue;
+            }
 
             // Skip "No newline at end of file" marker
             // This appears as: \ No newline at end of file
