@@ -6,7 +6,7 @@ public static class DiffLineHelper
 
     public static bool IsHeaderLine(string line)
     {
-        return line.StartsWith("---") || line.StartsWith("+++") ||
+        return line.StartsWith("--- ") || line.StartsWith("+++ ") ||
                line.StartsWith("diff ") || line.StartsWith("index ") ||
                line.StartsWith("@@") || line.Equals("...") ||
                line.StartsWith("\\") ||

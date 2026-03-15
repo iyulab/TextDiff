@@ -180,7 +180,7 @@ public class StreamingDiffProcessor
 
             int blockPosition = currentPosition;
 
-            if (block.BeforeContext.Any())
+            if (block.BeforeContext.Any() || block.Removals.Any())
             {
                 blockPosition = _contextMatcher.FindPosition(documentLines.ToArray(), currentPosition, block);
                 if (blockPosition == -1)
@@ -265,11 +265,13 @@ public class StreamingDiffProcessor
         int removalIndex = 0;
         int minCount = Math.Min(block.Removals.Count, block.Additions.Count);
 
-        // Changed lines (preserve original indentation only for non-whitespace lines)
+        // Changed lines (preserve original indentation only for non-whitespace lines,
+        // and only when the diff does not explicitly change the indentation style)
         for (int i = 0; i < minCount; i++)
         {
             var originalLine = documentLines[currentPosition + i];
             var addedLine = block.Additions[i];
+            var removalLine = block.Removals[i];
 
             if (string.IsNullOrWhiteSpace(originalLine))
             {
@@ -277,9 +279,19 @@ public class StreamingDiffProcessor
             }
             else
             {
-                string indentation = TextUtils.ExtractIndentation(originalLine);
-                string newContent = TextUtils.RemoveIndentation(addedLine);
-                await outputWriter.WriteLineAsync(indentation + newContent);
+                string removalIndentation = TextUtils.ExtractIndentation(removalLine);
+                string additionIndentation = TextUtils.ExtractIndentation(addedLine);
+
+                if (removalIndentation != additionIndentation)
+                {
+                    await outputWriter.WriteLineAsync(addedLine);
+                }
+                else
+                {
+                    string indentation = TextUtils.ExtractIndentation(originalLine);
+                    string newContent = TextUtils.RemoveIndentation(addedLine);
+                    await outputWriter.WriteLineAsync(indentation + newContent);
+                }
             }
 
             removalIndex++;
@@ -327,11 +339,13 @@ public class StreamingDiffProcessor
         int removalIndex = 0;
         int minCount = Math.Min(block.Removals.Count, block.Additions.Count);
 
-        // Changed lines (preserve original indentation only for non-whitespace lines)
+        // Changed lines (preserve original indentation only for non-whitespace lines,
+        // and only when the diff does not explicitly change the indentation style)
         for (int i = 0; i < minCount; i++)
         {
             var originalLine = documentLines[currentPosition + i];
             var addedLine = block.Additions[i];
+            var removalLine = block.Removals[i];
 
             if (string.IsNullOrWhiteSpace(originalLine))
             {
@@ -339,9 +353,19 @@ public class StreamingDiffProcessor
             }
             else
             {
-                string indentation = TextUtils.ExtractIndentation(originalLine);
-                string newContent = TextUtils.RemoveIndentation(addedLine);
-                buffer.AddLine(indentation + newContent);
+                string removalIndentation = TextUtils.ExtractIndentation(removalLine);
+                string additionIndentation = TextUtils.ExtractIndentation(addedLine);
+
+                if (removalIndentation != additionIndentation)
+                {
+                    buffer.AddLine(addedLine);
+                }
+                else
+                {
+                    string indentation = TextUtils.ExtractIndentation(originalLine);
+                    string newContent = TextUtils.RemoveIndentation(addedLine);
+                    buffer.AddLine(indentation + newContent);
+                }
             }
 
             removalIndex++;

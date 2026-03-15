@@ -44,6 +44,8 @@ public class ApiParityTests
         yield return new object[] { "MultiHunk", "a\nb\nc\nd\ne",
             "@@ -1,2 +1,2 @@\n-a\n+A\n b\n@@ -4,2 +4,2 @@\n d\n-e\n+E" };
 
+        yield return new object[] { "TabToSpace", "\tindented", "-\tindented\n+    indented" };
+
         var largeDoc = string.Join("\n", Enumerable.Range(1, 500).Select(i => $"line{i}"));
         yield return new object[] { "LargeDoc", largeDoc, " line499\n-line500\n+MODIFIED500" };
     }
