@@ -9,7 +9,13 @@ public static class DiffLineHelper
         return line.StartsWith("---") || line.StartsWith("+++") ||
                line.StartsWith("diff ") || line.StartsWith("index ") ||
                line.StartsWith("@@") || line.Equals("...") ||
-               line.StartsWith("\\");
+               line.StartsWith("\\") ||
+               // Git extended headers
+               line.StartsWith("old mode ") || line.StartsWith("new mode ") ||
+               line.StartsWith("new file mode ") || line.StartsWith("deleted file mode ") ||
+               line.StartsWith("similarity index ") || line.StartsWith("dissimilarity index ") ||
+               line.StartsWith("rename from ") || line.StartsWith("rename to ") ||
+               line.StartsWith("copy from ") || line.StartsWith("copy to ");
     }
 
     public static string ExtractContent(string line)

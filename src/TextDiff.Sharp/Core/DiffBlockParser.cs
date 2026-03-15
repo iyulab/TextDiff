@@ -9,14 +9,39 @@ public class DiffBlockParser : IDiffBlockParser
         var currentBlock = new DiffBlock();
         var isInChanges = false;
         var startedAfterYield = false;
+        var seenFirstDiffHeader = false;
 
         for (int i = 0; i < diffLines.Length; i++)
         {
             var line = diffLines[i];
 
-            // Skip file headers
-            if (line.StartsWith("---") || line.StartsWith("+++") ||
-                line.StartsWith("diff ") || line.StartsWith("index "))
+            // A "diff " line marks the start of a per-file section.
+            // Stop after the first file to avoid applying unrelated file diffs.
+            if (line.StartsWith("diff "))
+            {
+                if (seenFirstDiffHeader)
+                {
+                    // Second (or later) file section — stop here
+                    break;
+                }
+                seenFirstDiffHeader = true;
+                continue;
+            }
+
+            // Skip file headers (standard and git extended).
+            // Use "--- " / "+++ " (with trailing space) rather than "---" / "+++"
+            // so that diff content lines whose payload starts with dashes or pluses
+            // are not misidentified as headers.  A real header always has a space
+            // after the three marker characters (e.g. "--- a/file.txt"), whereas a
+            // diff addition line with content "+++ foo" looks like "++++ foo" in the
+            // raw diff — four pluses, not three followed by a space.
+            if (line.StartsWith("--- ") || line.StartsWith("+++ ") ||
+                line.StartsWith("index ") ||
+                line.StartsWith("old mode ") || line.StartsWith("new mode ") ||
+                line.StartsWith("new file mode ") || line.StartsWith("deleted file mode ") ||
+                line.StartsWith("similarity index ") || line.StartsWith("dissimilarity index ") ||
+                line.StartsWith("rename from ") || line.StartsWith("rename to ") ||
+                line.StartsWith("copy from ") || line.StartsWith("copy to "))
                 continue;
 
             // Ellipsis ("...") marks a gap in context between sections.
@@ -139,7 +164,7 @@ public class DiffBlockParser : IDiffBlockParser
         {
             var line = lines[i];
             if (string.IsNullOrEmpty(line)) continue;
-            if (line.StartsWith("---") || line.StartsWith("+++") || line.StartsWith("@@"))
+            if (line.StartsWith("--- ") || line.StartsWith("+++ ") || line.StartsWith("@@"))
                 continue;
             // Skip "No newline at end of file" marker
             if (line.StartsWith("\\"))
