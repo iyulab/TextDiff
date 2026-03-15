@@ -36,16 +36,49 @@ public class StreamingDiffProcessor
         // Reset context matcher state for thread safety
         _contextMatcher.Reset();
 
+        // Detect line separator from document stream before parsing
+        string lineSeparator = await DetectLineSeparatorFromStreamAsync(documentStream, cancellationToken);
+
         var diffBlocks = await ParseDiffStreamAsync(diffStream, cancellationToken);
         var changes = new ChangeStats();
 
-        using var documentReader = new StreamReader(documentStream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, DefaultBufferSize);
-        using var outputWriter = new StreamWriter(outputStream, Encoding.UTF8, DefaultBufferSize);
+        using var documentReader = new StreamReader(documentStream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, DefaultBufferSize, leaveOpen: true);
+        using var outputWriter = new StreamWriter(outputStream, Encoding.UTF8, DefaultBufferSize, leaveOpen: true);
+
+        // Apply detected line separator so output round-trips cleanly
+        outputWriter.NewLine = lineSeparator;
 
         await ProcessDocumentStreamAsync(documentReader, outputWriter, diffBlocks, changes, cancellationToken, progress);
 
         // For streaming operations, text is written to output stream, not returned
         return new ProcessResult(string.Empty, changes);
+    }
+
+    /// <summary>
+    /// Detects the line separator from a seekable stream by reading raw bytes.
+    /// Resets the stream position to 0 after detection.
+    /// Falls back to "\n" for non-seekable streams.
+    /// </summary>
+    private static async Task<string> DetectLineSeparatorFromStreamAsync(Stream stream, CancellationToken cancellationToken)
+    {
+        if (!stream.CanSeek)
+            return "\n";
+
+        // Read a small chunk to find the first newline
+        var buffer = new byte[Math.Min(4096, stream.Length)];
+        stream.Position = 0;
+        int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
+        stream.Position = 0;
+
+        for (int i = 0; i < bytesRead; i++)
+        {
+            if (buffer[i] == (byte)'\n')
+            {
+                return (i > 0 && buffer[i - 1] == (byte)'\r') ? "\r\n" : "\n";
+            }
+        }
+
+        return "\n"; // Default to LF if no newline found
     }
 
     /// <summary>
@@ -62,7 +95,10 @@ public class StreamingDiffProcessor
         var parser = new DiffBlockParser();
         var blocks = parser.Parse(diffLines).ToList();
 
-        var buffer = new OptimizedLineBuffer(Math.Max(bufferSizeHint, document.Length / 10));
+        // Detect line separator from document (fall back to diff, then platform default)
+        string? lineSeparator = DetectLineSeparator(document) ?? DetectLineSeparator(diff);
+
+        var buffer = new OptimizedLineBuffer(Math.Max(bufferSizeHint, document.Length / 10), lineSeparator);
         var changes = new ChangeStats();
         int currentPosition = 0;
 
@@ -79,6 +115,19 @@ public class StreamingDiffProcessor
         }
 
         return new ProcessResult(buffer.ToString(), changes);
+    }
+
+    /// <summary>
+    /// Detects the line separator used in the given text.
+    /// Returns "\r\n" for CRLF, "\n" for LF, or null when the text is too
+    /// short to determine (single-line / empty).
+    /// </summary>
+    private static string? DetectLineSeparator(string text)
+    {
+        int idx = text.IndexOf('\n');
+        if (idx < 0)
+            return null;
+        return idx > 0 && text[idx - 1] == '\r' ? "\r\n" : "\n";
     }
 
     private async Task<List<DiffBlock>> ParseDiffStreamAsync(Stream diffStream, CancellationToken cancellationToken)

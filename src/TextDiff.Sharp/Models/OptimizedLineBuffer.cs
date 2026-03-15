@@ -8,11 +8,13 @@ namespace TextDiff.Models;
 public class OptimizedLineBuffer
 {
     private readonly StringBuilder _buffer;
+    private readonly string _lineSeparator;
     private bool _hasLines;
 
-    public OptimizedLineBuffer(int capacity = 4096)
+    public OptimizedLineBuffer(int capacity = 4096, string? lineSeparator = null)
     {
         _buffer = new StringBuilder(capacity);
+        _lineSeparator = lineSeparator ?? Environment.NewLine;
         _hasLines = false;
     }
 
@@ -20,7 +22,7 @@ public class OptimizedLineBuffer
     {
         if (_hasLines)
         {
-            _buffer.AppendLine();
+            _buffer.Append(_lineSeparator);
         }
         _buffer.Append(line);
         _hasLines = true;
