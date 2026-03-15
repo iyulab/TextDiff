@@ -1,6 +1,7 @@
 ﻿using TextDiff.Core;
 using TextDiff.DiffX;
 using TextDiff.Exceptions;
+using TextDiff.Helpers;
 using TextDiff.Models;
 
 namespace TextDiff;
@@ -29,8 +30,8 @@ namespace TextDiff;
 /// - **ProcessOptimized()**: Memory-optimized processing for performance-critical scenarios
 ///
 /// **Thread Safety:**
-/// TextDiffer instances are thread-safe for concurrent processing operations.
-/// Multiple threads can safely call processing methods on the same instance.
+/// Each processing method call resets internal matcher state. For concurrent
+/// processing, use separate TextDiffer instances per thread.
 ///
 /// **Dependency Injection:**
 /// The class supports constructor injection of core interfaces, enabling
@@ -151,8 +152,8 @@ public class TextDiffer
             // Detect the line ending used in the source material so the output
             // round-trips cleanly.  Prefer the document's own line endings; fall
             // back to the diff's endings; finally fall back to the platform default.
-            string? lineSeparator = DetectLineSeparator(document)
-                                    ?? DetectLineSeparator(diff);
+            string? lineSeparator = TextUtils.DetectLineSeparator(document)
+                                    ?? TextUtils.DetectLineSeparator(diff);
 
             var processor = new DocumentProcessor(documentLines, _contextMatcher, _changeTracker, lineSeparator);
             return processor.ApplyBlocks(blocks);
@@ -211,19 +212,6 @@ public class TextDiffer
             if (!hasHunkHeader)
                 throw new InvalidDiffFormatException("Diff does not contain any valid diff lines (lines starting with +, -, or space).");
         }
-    }
-
-    /// <summary>
-    /// Detects the line separator used in the given text.
-    /// Returns "\r\n" for CRLF, "\n" for LF, or null when the text is too
-    /// short to determine (single-line / empty).
-    /// </summary>
-    private static string? DetectLineSeparator(string text)
-    {
-        int idx = text.IndexOf('\n');
-        if (idx < 0)
-            return null; // no newline found – cannot determine
-        return idx > 0 && text[idx - 1] == '\r' ? "\r\n" : "\n";
     }
 
     /// <summary>

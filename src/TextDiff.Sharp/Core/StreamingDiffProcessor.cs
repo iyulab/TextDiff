@@ -1,4 +1,5 @@
 using System.Text;
+using TextDiff.Helpers;
 using TextDiff.Models;
 
 namespace TextDiff.Core;
@@ -96,7 +97,7 @@ public class StreamingDiffProcessor
         var blocks = parser.Parse(diffLines).ToList();
 
         // Detect line separator from document (fall back to diff, then platform default)
-        string? lineSeparator = DetectLineSeparator(document) ?? DetectLineSeparator(diff);
+        string? lineSeparator = TextUtils.DetectLineSeparator(document) ?? TextUtils.DetectLineSeparator(diff);
 
         var buffer = new OptimizedLineBuffer(Math.Max(bufferSizeHint, document.Length / 10), lineSeparator);
         var changes = new ChangeStats();
@@ -115,19 +116,6 @@ public class StreamingDiffProcessor
         }
 
         return new ProcessResult(buffer.ToString(), changes);
-    }
-
-    /// <summary>
-    /// Detects the line separator used in the given text.
-    /// Returns "\r\n" for CRLF, "\n" for LF, or null when the text is too
-    /// short to determine (single-line / empty).
-    /// </summary>
-    private static string? DetectLineSeparator(string text)
-    {
-        int idx = text.IndexOf('\n');
-        if (idx < 0)
-            return null;
-        return idx > 0 && text[idx - 1] == '\r' ? "\r\n" : "\n";
     }
 
     private async Task<List<DiffBlock>> ParseDiffStreamAsync(Stream diffStream, CancellationToken cancellationToken)
@@ -223,7 +211,7 @@ public class StreamingDiffProcessor
     {
         int blockPosition = currentPosition;
 
-        if (block.BeforeContext.Any())
+        if (block.BeforeContext.Any() || block.Removals.Any())
         {
             blockPosition = _contextMatcher.FindPosition(documentLines, currentPosition, block);
             if (blockPosition == -1)
@@ -271,29 +259,8 @@ public class StreamingDiffProcessor
         {
             var originalLine = documentLines[currentPosition + i];
             var addedLine = block.Additions[i];
-            var removalLine = block.Removals[i];
-
-            if (string.IsNullOrWhiteSpace(originalLine))
-            {
-                await outputWriter.WriteLineAsync(addedLine);
-            }
-            else
-            {
-                string removalIndentation = TextUtils.ExtractIndentation(removalLine);
-                string additionIndentation = TextUtils.ExtractIndentation(addedLine);
-
-                if (removalIndentation != additionIndentation)
-                {
-                    await outputWriter.WriteLineAsync(addedLine);
-                }
-                else
-                {
-                    string indentation = TextUtils.ExtractIndentation(originalLine);
-                    string newContent = TextUtils.RemoveIndentation(addedLine);
-                    await outputWriter.WriteLineAsync(indentation + newContent);
-                }
-            }
-
+            var resultLine = TextUtils.ApplyIndentationPreservation(originalLine, block.Removals[i], addedLine);
+            await outputWriter.WriteLineAsync(resultLine);
             removalIndex++;
         }
 
@@ -345,29 +312,8 @@ public class StreamingDiffProcessor
         {
             var originalLine = documentLines[currentPosition + i];
             var addedLine = block.Additions[i];
-            var removalLine = block.Removals[i];
-
-            if (string.IsNullOrWhiteSpace(originalLine))
-            {
-                buffer.AddLine(addedLine);
-            }
-            else
-            {
-                string removalIndentation = TextUtils.ExtractIndentation(removalLine);
-                string additionIndentation = TextUtils.ExtractIndentation(addedLine);
-
-                if (removalIndentation != additionIndentation)
-                {
-                    buffer.AddLine(addedLine);
-                }
-                else
-                {
-                    string indentation = TextUtils.ExtractIndentation(originalLine);
-                    string newContent = TextUtils.RemoveIndentation(addedLine);
-                    buffer.AddLine(indentation + newContent);
-                }
-            }
-
+            var resultLine = TextUtils.ApplyIndentationPreservation(originalLine, block.Removals[i], addedLine);
+            buffer.AddLine(resultLine);
             removalIndex++;
         }
 

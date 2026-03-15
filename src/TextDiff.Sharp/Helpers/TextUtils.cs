@@ -100,30 +100,40 @@ public static class TextUtils
         return text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
     }
 
-    public static bool MatchContextLines(string[] documentLines, int position, List<string> contextLines)
+    /// <summary>
+    /// Applies indentation preservation logic for a paired change (removal + addition).
+    /// Preserves the original line's indentation when the diff does not explicitly change
+    /// the indentation style. Returns the addition line as-is when:
+    /// - The original line is whitespace-only, or
+    /// - The diff explicitly changes indentation (removal and addition have different indentation).
+    /// </summary>
+    public static string ApplyIndentationPreservation(string originalLine, string removalContent, string addedLine)
     {
-        for (int i = 0; i < contextLines.Count; i++)
-        {
-            if (position + i >= documentLines.Length ||
-                !LinesMatch(documentLines[position + i], contextLines[i]))
-            {
-                return false;
-            }
-        }
-        return true;
+        if (string.IsNullOrWhiteSpace(originalLine))
+            return addedLine;
+
+        string removalIndentation = ExtractIndentation(removalContent);
+        string additionIndentation = ExtractIndentation(addedLine);
+
+        if (removalIndentation != additionIndentation)
+            return addedLine;
+
+        string indentation = ExtractIndentation(originalLine);
+        string newContent = RemoveIndentation(addedLine);
+        return indentation + newContent;
     }
 
-    public static bool MatchRemovalLines(string[] documentLines, int position, List<string> removalLines)
+    /// <summary>
+    /// Detects the line separator used in the given text.
+    /// Returns "\r\n" for CRLF, "\n" for LF, or null when the text is too
+    /// short to determine (single-line / empty).
+    /// </summary>
+    public static string? DetectLineSeparator(string text)
     {
-        for (int i = 0; i < removalLines.Count; i++)
-        {
-            if (position + i >= documentLines.Length ||
-                !LinesMatch(documentLines[position + i], removalLines[i]))
-            {
-                return false;
-            }
-        }
-        return true;
+        int idx = text.IndexOf('\n');
+        if (idx < 0)
+            return null;
+        return idx > 0 && text[idx - 1] == '\r' ? "\r\n" : "\n";
     }
 
     /// <summary>
@@ -165,56 +175,6 @@ public static class TextUtils
     private static string NormalizeWhitespace(string input)
     {
         return string.Join(" ", input.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries));
-    }
-
-    public static bool LinesMatchIgnoreIndentation(string line1, string line2)
-    {
-        // Remove leading indentation and compare
-        string trimmed1 = line1.TrimStart();
-        string trimmed2 = line2.TrimStart();
-
-        // Trim whitespace from both ends
-        trimmed1 = trimmed1.Trim();
-        trimmed2 = trimmed2.Trim();
-
-        // Normalize consecutive whitespace to single spaces
-        trimmed1 = NormalizeWhitespace(trimmed1);
-        trimmed2 = NormalizeWhitespace(trimmed2);
-
-        return trimmed1 == trimmed2;
-    }
-
-    public static int GetRelativeIndentation(string baseLine, string newLine)
-    {
-        int baseIndent = baseLine.TakeWhile(char.IsWhiteSpace).Count();
-        int newIndent = newLine.TakeWhile(char.IsWhiteSpace).Count();
-
-        // Calculate relative indentation (minimum 0)
-        return Math.Max(0, newIndent - baseIndent);
-    }
-
-    public static bool LinesMatchProgressive(string line1, string line2)
-    {
-        // Use flexible matching for deletion/addition lines
-        return HasTextSimilarity(line1, line2);
-    }
-
-    public static bool HasAnySimilarity(string line1, string line2)
-    {
-        // 1. Exact match
-        if (line1 == line2)
-            return true;
-
-        // 2. Match after removing leading whitespace
-        if (line1.TrimStart() == line2.TrimStart())
-            return true;
-
-        // 3. Match after removing all whitespace
-        if (line1.Trim() == line2.Trim())
-            return true;
-
-        // No match found
-        return false;
     }
 
     public static bool HasTextSimilarity(string line1, string line2)
