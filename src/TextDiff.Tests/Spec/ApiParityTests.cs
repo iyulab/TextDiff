@@ -21,14 +21,14 @@ public class ApiParityTests
         // ProcessOptimized
         var optimizedResult = _differ.ProcessOptimized(document, diff);
 
-        Assert.Equal(syncResult.Text, asyncResult.Text);
-        Assert.Equal(syncResult.Text, optimizedResult.Text);
-        Assert.Equal(syncResult.Changes.AddedLines, asyncResult.Changes.AddedLines);
-        Assert.Equal(syncResult.Changes.DeletedLines, asyncResult.Changes.DeletedLines);
-        Assert.Equal(syncResult.Changes.ChangedLines, asyncResult.Changes.ChangedLines);
-        Assert.Equal(syncResult.Changes.AddedLines, optimizedResult.Changes.AddedLines);
-        Assert.Equal(syncResult.Changes.DeletedLines, optimizedResult.Changes.DeletedLines);
-        Assert.Equal(syncResult.Changes.ChangedLines, optimizedResult.Changes.ChangedLines);
+        Assert.True(syncResult.Text == asyncResult.Text, $"[{testName}] Process vs ProcessAsync text mismatch");
+        Assert.True(syncResult.Text == optimizedResult.Text, $"[{testName}] Process vs ProcessOptimized text mismatch");
+        Assert.True(syncResult.Changes.AddedLines == asyncResult.Changes.AddedLines, $"[{testName}] AddedLines mismatch (sync vs async)");
+        Assert.True(syncResult.Changes.DeletedLines == asyncResult.Changes.DeletedLines, $"[{testName}] DeletedLines mismatch (sync vs async)");
+        Assert.True(syncResult.Changes.ChangedLines == asyncResult.Changes.ChangedLines, $"[{testName}] ChangedLines mismatch (sync vs async)");
+        Assert.True(syncResult.Changes.AddedLines == optimizedResult.Changes.AddedLines, $"[{testName}] AddedLines mismatch (sync vs optimized)");
+        Assert.True(syncResult.Changes.DeletedLines == optimizedResult.Changes.DeletedLines, $"[{testName}] DeletedLines mismatch (sync vs optimized)");
+        Assert.True(syncResult.Changes.ChangedLines == optimizedResult.Changes.ChangedLines, $"[{testName}] ChangedLines mismatch (sync vs optimized)");
     }
 
     public static IEnumerable<object[]> ParityTestCases()

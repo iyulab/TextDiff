@@ -161,7 +161,7 @@ public class FileTests
     }
 
     [Fact]
-    public void TestFile8_()
+    public void TestFile8_PureAdditions_GuardClause()
     {
         // Arrange
         var sourceFile = Path.Combine(TestFilesPath, "file_8.txt");
@@ -177,7 +177,7 @@ public class FileTests
     }
 
     [Fact]
-    public void TestFile9_()
+    public void TestFile9_ImportAndExpressionChange()
     {
         // Arrange
         var sourceFile = Path.Combine(TestFilesPath, "file_9.txt");
