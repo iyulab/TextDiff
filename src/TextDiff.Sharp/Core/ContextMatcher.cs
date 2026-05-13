@@ -43,7 +43,6 @@ public class ContextMatcher : IContextMatcher
             throw new ArgumentOutOfRangeException(nameof(startPosition));
 
         var candidates = new List<MatchCandidate>();
-        var pattern = AnalyzeContextPattern(block);
         bool isProgressiveBlock = IsProgressiveBlock(block);
 
         // Try matching at each possible position
@@ -53,7 +52,7 @@ public class ContextMatcher : IContextMatcher
             if (block.Removals.Any() && !ValidateRemovalPosition(documentLines, i, block))
                 continue;
 
-            var match = TryMatchWithContext(documentLines, i, block, pattern, isProgressiveBlock);
+            var match = TryMatchWithContext(documentLines, i, block, isProgressiveBlock);
             if (match.IsMatch)
             {
                 candidates.Add(new MatchCandidate(i, match.Score));
@@ -82,7 +81,6 @@ public class ContextMatcher : IContextMatcher
         string[] documentLines,
         int position,
         DiffBlock block,
-        ContextPattern pattern,
         bool isProgressiveBlock)
     {
         if (!IsBasicContextMatch(documentLines, position, block))
@@ -91,7 +89,7 @@ public class ContextMatcher : IContextMatcher
         // Calculate individual score components
         var continuityScore = CalculateContinuityScore(position, isProgressiveBlock);
         var contextScore = EvaluateSurroundingContext(documentLines, position, block);
-        var patternScore = CalculatePatternSimilarity(documentLines, position, block, pattern);
+        var patternScore = CalculatePatternSimilarity(documentLines, position, block);
 
         // Calculate final score with weights
         double finalScore = (continuityScore * CONTINUITY_WEIGHT +
@@ -258,8 +256,7 @@ public class ContextMatcher : IContextMatcher
     private double CalculatePatternSimilarity(
         string[] documentLines,
         int position,
-        DiffBlock block,
-        ContextPattern pattern)
+        DiffBlock block)
     {
         // Calculate context pattern similarity
         double similarity = 1.0;
@@ -323,18 +320,6 @@ public class ContextMatcher : IContextMatcher
         return count > 0 ? 1.0 - (totalDiff / count) : 1.0;
     }
 
-    private class ContextPattern
-    {
-        public List<LinePattern> LeadingPatterns { get; set; } = new();
-        public List<LinePattern> TrailingPatterns { get; set; } = new();
-    }
-
-    private class LinePattern
-    {
-        public int Indentation { get; set; }
-        public int ContentLength { get; set; }
-    }
-
     private class MatchCandidate
     {
         public int Position { get; }
@@ -347,24 +332,4 @@ public class ContextMatcher : IContextMatcher
         }
     }
 
-    private ContextPattern AnalyzeContextPattern(DiffBlock block)
-    {
-        return new ContextPattern
-        {
-            LeadingPatterns = block.BeforeContext
-                .Select(line => new LinePattern
-                {
-                    Indentation = line.Length - line.TrimStart().Length,
-                    ContentLength = line.Trim().Length
-                })
-                .ToList(),
-            TrailingPatterns = block.AfterContext
-                .Select(line => new LinePattern
-                {
-                    Indentation = line.Length - line.TrimStart().Length,
-                    ContentLength = line.Trim().Length
-                })
-                .ToList()
-        };
-    }
 }

@@ -42,10 +42,6 @@ public class DocumentProcessor
         if (block.BeforeContext.Any() || block.Removals.Any())
         {
             blockPosition = _contextMatcher.FindPosition(_documentLines, _currentPosition, block);
-            if (blockPosition == -1)
-            {
-                throw new InvalidOperationException($"Cannot find matching position for block: {block}");
-            }
         }
 
         CopyLinesUntilPosition(blockPosition);

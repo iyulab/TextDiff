@@ -162,6 +162,7 @@ public class StreamingDiffProcessor
         }
 
         int currentPosition = 0;
+        var docLines = documentLines.ToArray();
 
         foreach (var block in diffBlocks)
         {
@@ -171,11 +172,7 @@ public class StreamingDiffProcessor
 
             if (block.BeforeContext.Any() || block.Removals.Any())
             {
-                blockPosition = _contextMatcher.FindPosition(documentLines.ToArray(), currentPosition, block);
-                if (blockPosition == -1)
-                {
-                    throw new InvalidOperationException($"Cannot find matching position for block: {block}");
-                }
+                blockPosition = _contextMatcher.FindPosition(docLines, currentPosition, block);
             }
 
             // Copy lines until block position

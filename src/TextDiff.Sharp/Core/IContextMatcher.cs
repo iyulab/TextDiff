@@ -56,9 +56,11 @@ public interface IContextMatcher
     /// The block's BeforeContext property provides the matching criteria.
     /// </param>
     /// <returns>
-    /// The zero-based line position where the diff block should be applied,
-    /// or -1 if no matching context could be found in the document.
+    /// The zero-based line position where the diff block should be applied.
     /// </returns>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when no matching context could be found in the document.
+    /// </exception>
     /// <remarks>
     /// The position finding algorithm:
     /// 1. Starts searching from the specified startPosition

@@ -249,9 +249,6 @@ public class TextDiffer
             var diffLines = TextUtils.SplitLines(diff);
             ValidateDiffFormat(diffLines);
 
-            progress?.Report(new ProcessingProgress("Parsing diff blocks", 25, 100));
-            var blocks = _blockParser.Parse(diffLines).ToList();
-
             progress?.Report(new ProcessingProgress("Processing document", 50, 100));
 
             // Use streaming processor for better performance on large documents
