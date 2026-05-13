@@ -216,7 +216,6 @@ public class TextDiffer
 
     /// <summary>
     /// Processes a diff asynchronously with support for cancellation and progress reporting.
-    /// Optimized for large documents and long-running operations.
     /// </summary>
     /// <param name="document">The original document content.</param>
     /// <param name="diff">The diff content in unified diff format.</param>
@@ -228,6 +227,22 @@ public class TextDiffer
     /// <exception cref="InvalidDiffFormatException">Thrown when the diff format is invalid.</exception>
     /// <exception cref="DiffApplicationException">Thrown when the diff cannot be applied to the document.</exception>
     /// <exception cref="OperationCanceledException">Thrown when the operation is cancelled.</exception>
+    /// <remarks>
+    /// <para>
+    /// This method wraps a CPU-bound operation with <c>Task.Run</c>. Per Microsoft guidelines,
+    /// libraries should not wrap CPU-bound work in async methods. Prefer <see cref="Process"/> and
+    /// offload to <c>Task.Run</c> at the call site when needed.
+    /// </para>
+    /// <para>
+    /// When calling this method, use <c>ConfigureAwait(false)</c> in library code to avoid
+    /// unnecessary context marshalling.
+    /// </para>
+    /// </remarks>
+    [Obsolete(
+        "ProcessAsync wraps a CPU-bound operation with Task.Run. " +
+        "Prefer Process() and offload to Task.Run at the call site. " +
+        "A true async pipeline will be introduced in a future major version.",
+        error: false)]
     public async Task<ProcessResult> ProcessAsync(
         string document,
         string diff,
@@ -278,8 +293,12 @@ public class TextDiffer
     /// <param name="outputStream">Stream to write the result to.</param>
     /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
     /// <param name="progress">Progress reporter for long-running operations.</param>
-    /// <returns>A ProcessResult containing processing statistics.</returns>
-    public async Task<ProcessResult> ProcessStreamsAsync(
+    /// <returns>A <see cref="StreamProcessResult"/> containing processing statistics.</returns>
+    /// <remarks>
+    /// The processed document is written to <paramref name="outputStream"/>.
+    /// Access change statistics via the returned <see cref="StreamProcessResult.Changes"/>.
+    /// </remarks>
+    public async Task<StreamProcessResult> ProcessStreamsAsync(
         Stream documentStream,
         Stream diffStream,
         Stream outputStream,
@@ -370,13 +389,13 @@ public class TextDiffer
         if (string.IsNullOrWhiteSpace(diffOrDiffX))
             throw new ArgumentException("Diff cannot be empty or contain only whitespace.", nameof(diffOrDiffX));
 
-        var reader = new DiffXReader();
-
         // If not DiffX, fallback to standard processing
-        if (!reader.IsDiffX(diffOrDiffX))
+        if (!DiffXReader.IsDiffX(diffOrDiffX))
         {
             return Process(document, diffOrDiffX);
         }
+
+        var reader = new DiffXReader();
 
         // Extract diff entries from DiffX
         var entries = reader.ExtractFileDiffs(diffOrDiffX).ToList();
@@ -456,11 +475,7 @@ public class TextDiffer
     /// This is a quick check that only examines the first line of the content.
     /// Use this to determine which processing method to call.
     /// </remarks>
-    public static bool IsDiffX(string content)
-    {
-        var reader = new DiffXReader();
-        return reader.IsDiffX(content);
-    }
+    public static bool IsDiffX(string content) => DiffXReader.IsDiffX(content);
 
     #endregion
 }

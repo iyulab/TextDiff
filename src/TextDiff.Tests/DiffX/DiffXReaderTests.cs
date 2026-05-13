@@ -26,7 +26,7 @@ public class DiffXReaderTests
         var content = "#diffx: encoding=utf-8, version=1.0\n#.change:\n...";
 
         // Act
-        var result = _reader.IsDiffX(content);
+        var result = DiffXReader.IsDiffX(content);
 
         // Assert
         Assert.True(result);
@@ -39,7 +39,7 @@ public class DiffXReaderTests
         var content = "#diffx:\n...";
 
         // Act
-        var result = _reader.IsDiffX(content);
+        var result = DiffXReader.IsDiffX(content);
 
         // Assert
         Assert.True(result);
@@ -52,7 +52,7 @@ public class DiffXReaderTests
         var content = "--- a/file.txt\n+++ b/file.txt\n@@ -1,3 +1,3 @@\n...";
 
         // Act
-        var result = _reader.IsDiffX(content);
+        var result = DiffXReader.IsDiffX(content);
 
         // Assert
         Assert.False(result);
@@ -65,7 +65,7 @@ public class DiffXReaderTests
         var content = "diff --git a/file.txt b/file.txt\nindex abc..def 100644\n...";
 
         // Act
-        var result = _reader.IsDiffX(content);
+        var result = DiffXReader.IsDiffX(content);
 
         // Assert
         Assert.False(result);
@@ -78,7 +78,7 @@ public class DiffXReaderTests
         var content = "";
 
         // Act
-        var result = _reader.IsDiffX(content);
+        var result = DiffXReader.IsDiffX(content);
 
         // Assert
         Assert.False(result);
@@ -91,7 +91,7 @@ public class DiffXReaderTests
         string? content = null;
 
         // Act
-        var result = _reader.IsDiffX(content!);
+        var result = DiffXReader.IsDiffX(content!);
 
         // Assert
         Assert.False(result);
@@ -104,7 +104,7 @@ public class DiffXReaderTests
         var content = "#diff: encoding=utf-8\n...";
 
         // Act
-        var result = _reader.IsDiffX(content);
+        var result = DiffXReader.IsDiffX(content);
 
         // Assert
         Assert.False(result);
@@ -117,7 +117,7 @@ public class DiffXReaderTests
         var content = "#diffx: encoding=utf-8\r\n#.change:\r\n...";
 
         // Act
-        var result = _reader.IsDiffX(content);
+        var result = DiffXReader.IsDiffX(content);
 
         // Assert
         Assert.True(result);

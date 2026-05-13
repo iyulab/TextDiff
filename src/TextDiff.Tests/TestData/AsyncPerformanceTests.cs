@@ -1,5 +1,7 @@
 using TextDiff.Core;
 
+#pragma warning disable CS0618 // ProcessAsync is deprecated; these tests intentionally verify the deprecated API
+
 namespace TextDiff.Tests.TestData;
 
 public class AsyncPerformanceTests

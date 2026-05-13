@@ -29,10 +29,10 @@ public class StreamingDiffProcessor
     /// Process diff with streaming approach to minimize memory usage.
     /// </summary>
     /// <remarks>
-    /// For streaming operations, the result is written directly to the output stream.
-    /// The returned ProcessResult.Text will be empty; use the output stream to access the result.
+    /// The processed document is written directly to <paramref name="outputStream"/>.
+    /// Use the returned <see cref="StreamProcessResult"/> to access change statistics.
     /// </remarks>
-    public async Task<ProcessResult> ProcessStreamingAsync(
+    public async Task<StreamProcessResult> ProcessStreamingAsync(
         Stream documentStream,
         Stream diffStream,
         Stream outputStream,
@@ -56,8 +56,7 @@ public class StreamingDiffProcessor
 
         await ProcessDocumentStreamAsync(documentReader, outputWriter, diffBlocks, changes, cancellationToken, progress);
 
-        // For streaming operations, text is written to output stream, not returned
-        return new ProcessResult(string.Empty, changes);
+        return new StreamProcessResult(changes);
     }
 
     /// <summary>

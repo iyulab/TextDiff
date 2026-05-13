@@ -33,8 +33,12 @@ public partial class DiffXReader : IDiffXReader
     private static readonly Regex JsonPathRegex = JsonPathPattern();
     private static readonly Regex JsonOpRegex = JsonOpPattern();
 
-    /// <inheritdoc />
-    public bool IsDiffX(string content)
+    /// <summary>
+    /// Determines whether the content is in DiffX format.
+    /// </summary>
+    /// <param name="content">The content to check.</param>
+    /// <returns><c>true</c> if the content starts with a valid DiffX header; otherwise, <c>false</c>.</returns>
+    public static bool IsDiffX(string content)
     {
         if (string.IsNullOrEmpty(content))
             return false;

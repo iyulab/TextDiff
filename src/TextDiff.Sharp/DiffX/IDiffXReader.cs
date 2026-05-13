@@ -19,17 +19,6 @@ namespace TextDiff.DiffX;
 public interface IDiffXReader
 {
     /// <summary>
-    /// Determines whether the content is in DiffX format.
-    /// </summary>
-    /// <param name="content">The content to check.</param>
-    /// <returns><c>true</c> if the content starts with a valid DiffX header; otherwise, <c>false</c>.</returns>
-    /// <remarks>
-    /// DiffX format is identified by the first line starting with "#diffx:".
-    /// This method performs a quick check without parsing the entire content.
-    /// </remarks>
-    bool IsDiffX(string content);
-
-    /// <summary>
     /// Extracts file diff entries from DiffX content.
     /// </summary>
     /// <param name="diffXContent">The DiffX format content.</param>

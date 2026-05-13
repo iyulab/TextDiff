@@ -2,6 +2,8 @@ using System.IO;
 using System.Text;
 using TextDiff;
 
+#pragma warning disable CS0618 // ProcessAsync is deprecated; ApiParityTests intentionally verifies the deprecated API still produces correct results
+
 namespace TextDiff.Tests.Spec;
 
 public class ApiParityTests
