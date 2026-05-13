@@ -367,3 +367,5 @@ FodyWeavers.xsd
 claudedocs/
 nupkg/
 local-docs/
+coverage-output/
+coverage-report/
