@@ -3,6 +3,8 @@ using BenchmarkDotNet.Jobs;
 using TextDiff.Helpers;
 using TextDiff.Models;
 
+#pragma warning disable CS0618 // ProcessAsync benchmark intentionally measures the deprecated API
+
 namespace TextDiff.Benchmarks;
 
 [SimpleJob(RuntimeMoniker.Net90)]
